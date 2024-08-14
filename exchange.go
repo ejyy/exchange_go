@@ -39,7 +39,6 @@ func (ex *Exchange) Limit(incoming_order Order) {
 }
 
 func (ex *Exchange) Cancel(symbol string, order_id OrderID) OrderID {
-	// TODO: Need to feed symbol in to find the orderbook?
 	ob := ex.GetOrCreateOrderBook(symbol)
 	if cancel_order, ok := ob.order_id_map[order_id]; ok {
 		if cancel_order.size == 0 {
