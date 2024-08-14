@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gammazero/deque"
 )
 
 type Exchange struct {

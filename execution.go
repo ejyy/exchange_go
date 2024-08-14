@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 type Execution struct {
 	symbol       string
 	order_id_bid OrderID
