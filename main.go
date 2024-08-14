@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	
+
 	var exchange Exchange
 	exchange.Init("Example exchange")
 
