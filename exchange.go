@@ -21,11 +21,11 @@ func (ex *Exchange) Init(name string) {
 	// fmt.Println("Exchange started:", ex.name, "- Ready to accept orders")
 }
 
-func (ex *Exchange) GetOrCreateOrderBook(symbol string) *OrderBook {
+func (ex *Exchange) getOrCreateOrderBook(symbol string) *OrderBook {
 	order_book, exists := ex.orderbooks_map[symbol]
 	if !exists {
 		order_book = new(OrderBook)
-		order_book.Init(symbol)
+		order_book.init(symbol)
 		ex.orderbooks_map[symbol] = order_book
 	}
 	return order_book
@@ -34,12 +34,12 @@ func (ex *Exchange) GetOrCreateOrderBook(symbol string) *OrderBook {
 func (ex *Exchange) Limit(incoming_order Order) {
 	// TODO: Edit this to do order validation
 
-	ob := ex.GetOrCreateOrderBook(incoming_order.symbol)
-	ob.LimitHandle(incoming_order)
+	ob := ex.getOrCreateOrderBook(incoming_order.symbol)
+	ob.limitHandle(incoming_order)
 }
 
 func (ex *Exchange) Cancel(symbol string, order_id OrderID) OrderID {
-	ob := ex.GetOrCreateOrderBook(symbol)
+	ob := ex.getOrCreateOrderBook(symbol)
 	if cancel_order, ok := ob.order_id_map[order_id]; ok {
 		if cancel_order.size == 0 {
 			fmt.Println("CANCEL rejected as ID:", order_id, "already cancelled (or fully filled)")
@@ -53,5 +53,3 @@ func (ex *Exchange) Cancel(symbol string, order_id OrderID) OrderID {
 	}
 	return order_id
 }
-
-// TODO: Public vs private functions based on capitalisation

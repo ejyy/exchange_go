@@ -15,7 +15,7 @@ type OrderBook struct {
 	// Consider actions channel here to handle message passing
 }
 
-func (ob *OrderBook) Init(symbol string) {
+func (ob *OrderBook) init(symbol string) {
 	ob.symbol = symbol
 	ob.current_order_id = 0
 
@@ -30,7 +30,7 @@ func (ob *OrderBook) Init(symbol string) {
 	// fmt.Println("Orderbook created for:", ob.symbol)
 }
 
-func (ob *OrderBook) LimitHandle(incoming_order Order) OrderID {
+func (ob *OrderBook) limitHandle(incoming_order Order) OrderID {
 	order := incoming_order
 
 	ob.current_order_id += 1
@@ -41,24 +41,24 @@ func (ob *OrderBook) LimitHandle(incoming_order Order) OrderID {
 
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
-		ob.FillBidSide(&order)
+		ob.fillBidSide(&order)
 	} else {
-		ob.FillAskSide(&order)
+		ob.fillAskSide(&order)
 	}
 
 	// If unfilled (or partially filled), insert into orderbook
 	if order.size > 0 {
-		ob.InsertIntoBook(&order)
+		ob.insertIntoBook(&order)
 	}
 
 	return order.order_id
 }
 
-func (ob *OrderBook) FillBidSide(order *Order) {
+func (ob *OrderBook) fillBidSide(order *Order) {
 	for order.price >= ob.ask_min && order.size > 0 {
 		entries := &ob.price_points[ob.ask_min]
 		for entries.Len() > 0 && order.size > 0 {
-			ob.FillOrder(order, entries)
+			ob.fillOrder(order, entries)
 		}
 		if order.size > 0 {
 			ob.ask_min++
@@ -66,11 +66,11 @@ func (ob *OrderBook) FillBidSide(order *Order) {
 	}
 }
 
-func (ob *OrderBook) FillAskSide(order *Order) {
+func (ob *OrderBook) fillAskSide(order *Order) {
 	for order.price <= ob.bid_max && order.size > 0 {
 		entries := &ob.price_points[ob.bid_max]
 		for entries.Len() > 0 && order.size > 0 {
-			ob.FillOrder(order, entries)
+			ob.fillOrder(order, entries)
 		}
 		if order.size > 0 {
 			ob.bid_max--
@@ -103,7 +103,7 @@ func (ob *OrderBook) FillAskSide(order *Order) {
 // TODO: Tidy up execution reporting to minimise code repetition (suggest using a 'fillsize' call to a reporting function)
 // Execution occurs at entry.price for 'price improvement'
 
-func (ob *OrderBook) FillOrder(order *Order, entries *deque.Deque[OrderID]) {
+func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	if entry, ok := ob.order_id_map[entries.Front()]; ok {
 		if entry.size >= order.size { // Incoming order completely filled
 
@@ -144,14 +144,14 @@ func (ob *OrderBook) FillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	}
 }
 
-func (ob *OrderBook) InsertIntoBook(order *Order) {
+func (ob *OrderBook) insertIntoBook(order *Order) {
 	ob.price_points[order.price].PushBack(ob.current_order_id)
 	ob.order_id_map[order.order_id] = *order
 
-	ob.UpdateBidMaxAskMin(order)
+	ob.updateBidMaxAskMin(order)
 }
 
-func (ob *OrderBook) UpdateBidMaxAskMin(order *Order) {
+func (ob *OrderBook) updateBidMaxAskMin(order *Order) {
 	if order.side == Bid && order.price > ob.bid_max {
 		ob.bid_max = order.price
 	} else if order.side == Ask && order.price < ob.ask_min {
