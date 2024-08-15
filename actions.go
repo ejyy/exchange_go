@@ -20,6 +20,8 @@ type Action struct {
 	trader_other   TraderID
 }
 
+// Consider embedding the Order struct into Action and pass pointer to order / entry object, instead of re-creating?
+
 func newBidAction(order *Order) *Action {
 	return &Action{
 		action_type: ACTION_BID,
