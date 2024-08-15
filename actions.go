@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type ActionType string
 const (
 	ACTION_BID = "BID"
@@ -28,7 +26,7 @@ func newBidAction(order *Order) *Action {
 		order_id: order.order_id,
 		price: order.price,
 		size: order.size,
-		trader: order.trader
+		trader: order.trader,
 	}
 }
 
@@ -39,7 +37,7 @@ func newAskAction(order *Order) *Action {
 		order_id: order.order_id,
 		price: order.price,
 		size: order.size,
-		trader: order.trader
+		trader: order.trader,
 	}
 }
 
@@ -50,7 +48,7 @@ func newCancelAction(order *Order) *Action {
 		order_id: order.order_id,
 		price: order.price,
 		size: order.size,
-		trader: order.trader
+		trader: order.trader,
 	}
 }
 
@@ -64,6 +62,6 @@ func newExecuteAction(order *Order, entry *Order) *Action {
 		price: entry.price,
 		size: order.size, // Change this around?
 		trader: order.trader, // Change this around?
-		trader_other: entry.trader // Change this around?
+		trader_other: entry.trader, // Change this around?
 	}
 }
