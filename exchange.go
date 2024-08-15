@@ -9,6 +9,7 @@ import (
 type Exchange struct {
 	name           string
 	orderbooks_map map[string]*OrderBook
+	//actions chan<- *Action
 }
 
 // Consider: Could move current_order_id and order_id_map out of OrderBook and into Exchange to prevent having to re-make a map for each symbol
@@ -18,6 +19,7 @@ type Exchange struct {
 func (ex *Exchange) Init(name string) {
 	ex.name = name
 	ex.orderbooks_map = make(map[string]*OrderBook, EST_SYMBOLS)
+	//ex.actions = actions (need to make Init accept actions chan<- *Action)
 	// fmt.Println("Exchange started:", ex.name, "- Ready to accept orders")
 }
 
@@ -46,6 +48,7 @@ func (ex *Exchange) Cancel(symbol string, order_id OrderID) OrderID {
 		} else {
 			(&cancel_order).size = 0
 			ob.order_id_map[order_id] = cancel_order
+			//ex.actions <- NewCancelAction(cancel_order)
 			fmt.Println("CANCEL... ID:", order_id, "Symbol:", symbol)
 		}
 	} else {

@@ -41,8 +41,10 @@ func (ob *OrderBook) limitHandle(incoming_order Order) OrderID {
 
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
+		//ex.actions <- NewBidAction(order) ? Can call ex here?
 		ob.fillBidSide(&order)
 	} else {
+		//ex.actions <- NewBidAction(order) ? Can call ex here?
 		ob.fillAskSide(&order)
 	}
 
@@ -107,6 +109,8 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	if entry, ok := ob.order_id_map[entries.Front()]; ok {
 		if entry.size >= order.size { // Incoming order completely filled
 
+			//ex.actions <- NewExecuteAction(order, entry) ? Can call ex here?
+
 			// if order.side == Bid {
 			// 	fmt.Println(&Execution{symbol: order.symbol, order_id_bid: order.order_id, order_id_ask: entry.order_id,
 			// 		price: entry.price, size: order.size, trader_bid: order.trader, trader_ask: entry.trader})
@@ -126,6 +130,8 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 				entries.PopFront()
 				return
 			}
+
+			//ex.actions <- NewExecuteAction(order, entry) ? Can call ex here?
 
 			// if order.side == Bid {
 			// 	fmt.Println(&Execution{symbol: order.symbol, order_id_bid: order.order_id, order_id_ask: entry.order_id,
