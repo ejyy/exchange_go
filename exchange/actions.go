@@ -105,7 +105,7 @@ func (action *Action) String() string {
 			action.order.order_id,
 			action.other_order.order_id,
 			action.order.symbol,
-			action.order.price,
+			action.order.price, // TODO: This is not consistently entry.price
 			action.fill_size,
 			action.order.trader,
 			action.other_order.trader,
