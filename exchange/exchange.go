@@ -41,14 +41,36 @@ func (ex *Exchange) getOrCreateOrderBook(symbol string) *OrderBook {
 	return order_book
 }
 
+func validateOrder(symbol string, price Price, size Size, side Side, trader TraderID) bool {
+	if symbol == "" {
+		return false
+	}
+	if price < MIN_PRICE || price > MAX_PRICE {
+		return false
+	}
+	if size <= 0 {
+		return false
+	}
+	if side != Bid && side != Ask {
+		return false
+	}
+	if trader <= 0 {
+		return false
+	}
+	return true
+}
+
 func (ex *Exchange) Limit(symbol string, price Price, size Size, side Side, trader TraderID) {
-	// TODO: Add in order validation before forming Order struct
+	if !validateOrder(symbol, price, size, side, trader) {
+		ex.actions <- newOrderRejectAction()
+		return
+	}
 
 	incoming_order := Order{
 		symbol: symbol,
-		price: price,
-		size: size,
-		side: side,
+		price:  price,
+		size:   size,
+		side:   side,
 		trader: trader,
 	}
 

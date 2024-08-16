@@ -34,6 +34,12 @@ func newOrderAction(order *Order) *Action {
 	}
 }
 
+func newOrderRejectAction() *Action {
+	return &Action{
+		action_type: ACTION_ORDER_REJECT,
+	}
+}
+
 func newCancelAction(order *Order) *Action {
 	return &Action{
 		action_type: ACTION_CANCEL,

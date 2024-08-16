@@ -65,6 +65,8 @@ func TestExchange_Limit(t *testing.T) {
 	}
 }
 
+// Expand test suite to include order validation tests
+
 func TestExchange_Cancel(t *testing.T) {
 	actions := make(chan *Action, CHAN_SIZE)
 	var exchange Exchange
