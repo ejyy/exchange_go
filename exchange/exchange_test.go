@@ -37,6 +37,6 @@ func BenchmarkExchange(b *testing.B) {
 			side = Ask
 		}
 
-		exchange.Limit(Order{symbol: symbol, price: Price(price), size: Size(size), side: side, trader: 1})
+		exchange.Limit(symbol, Price(price), Size(size), side, 1)
 	}
 }
