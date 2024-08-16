@@ -18,7 +18,7 @@ func BenchmarkExchange(b *testing.B) {
 	exchange.Init("Test exchange", actions)
 
 	go func() {
-		for range exchange.actions {
+		for range actions {
 			// Do nothing, just discard the action (avoid overhead of STDOUT)
 		}
 	}()
