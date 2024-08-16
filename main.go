@@ -14,7 +14,7 @@ func main() {
 
 	exchange_engine.Init("Example exchange", actions)
 
-	go func() { // TODO: Getting variable number of messages, based on execution time of below orders; change this
+	go func() {
 		for {
 			select {
 			case action := <-actions:
@@ -36,4 +36,5 @@ func main() {
 
 	done_channel <- true
 
+	// TODO: Getting variable number of messages, based on execution time of below orders. Due to sending done immediately after orders
 }
