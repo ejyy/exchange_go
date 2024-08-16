@@ -12,7 +12,7 @@ func main() {
 	var exchange Exchange
 	exchange.Init("Example exchange", actions)
 
-	go func() {
+	go func() { // TODO: Getting variable number of messages, based on execution time of below orders; change this
 		for {
 			select {
 			case action := <-exchange.actions:
