@@ -2,6 +2,7 @@ package exchange
 
 import "fmt"
 
+// ActionType represents the type of action event passed by the exchange
 type ActionType string
 
 const (
@@ -13,6 +14,7 @@ const (
 	ACTION_EXECUTE       = "EXECUTION"
 )
 
+// Action represents an action event passed by the exchange
 type Action struct {
 	action_type ActionType
 	order       Order
@@ -20,6 +22,7 @@ type Action struct {
 	fill_size   Size
 }
 
+// newOrderAction creates a new order action based on the order side (Bid or Ask)
 func newOrderAction(order *Order) *Action {
 	if order.side == Bid {
 		return &Action{
@@ -34,12 +37,14 @@ func newOrderAction(order *Order) *Action {
 	}
 }
 
+// newOrderRejectAction creates a new order rejection action. Used in cases of failing validation
 func newOrderRejectAction() *Action {
 	return &Action{
 		action_type: ACTION_ORDER_REJECT,
 	}
 }
 
+// newCancelAction creates a new cancel action, based on the order to be cancelled
 func newCancelAction(order *Order) *Action {
 	return &Action{
 		action_type: ACTION_CANCEL,
@@ -47,6 +52,7 @@ func newCancelAction(order *Order) *Action {
 	}
 }
 
+// newCancelRejectAction creates a new cancel rejection action. Used in cases of missing OrderID
 func newCancelRejectAction() *Action {
 	return &Action{
 		action_type: ACTION_CANCEL_REJECT,
@@ -71,6 +77,8 @@ func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
 		}
 	}
 }
+
+// TODO: Unclear if this is actually correctly reporting the side consistently? Check again!!
 
 func (action *Action) String() string {
 	switch action.action_type {
