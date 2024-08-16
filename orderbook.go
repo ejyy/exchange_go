@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"github.com/gammazero/deque"
 )
 
@@ -12,12 +11,13 @@ type OrderBook struct {
 	bid_max          Price
 	order_id_map     map[OrderID]Order // TODO: Wasteful to store entire 'Order' struct, only need trader + size (https://go.dev/play/p/4KPix5OEXJC)
 	price_points     [MAX_PRICE + 1]deque.Deque[OrderID]
-	// Consider actions channel here to handle message passing
+	exchange         *Exchange
 }
 
-func (ob *OrderBook) init(symbol string) {
+func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 	ob.symbol = symbol
 	ob.current_order_id = 0
+	ob.exchange = exchange
 
 	ob.ask_min = MAX_PRICE + 1
 	ob.bid_max = MIN_PRICE - 1
@@ -26,25 +26,20 @@ func (ob *OrderBook) init(symbol string) {
 	for i := range MAX_PRICE + 1 {
 		ob.price_points[i] = *deque.New[OrderID]()
 	}
-
-	// fmt.Println("Orderbook created for:", ob.symbol)
 }
 
-func (ob *OrderBook) limitHandle(incoming_order Order) OrderID {
+func (ob *OrderBook) limitHandle(incoming_order Order) {
 	order := incoming_order
 
 	ob.current_order_id += 1
 	order.order_id = ob.current_order_id
 
-	// fmt.Printf("ORDER... ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v\n",
-	// 	order.order_id, order.symbol, order.side, order.price, order.size, order.trader)
-
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
-		//ex.actions <- NewBidAction(order) ? Can call ex here?
+		ob.exchange.actions <- newOrderAction(&order)
 		ob.fillBidSide(&order)
 	} else {
-		//ex.actions <- NewBidAction(order) ? Can call ex here?
+		ob.exchange.actions <- newOrderAction(&order)
 		ob.fillAskSide(&order)
 	}
 
@@ -52,8 +47,6 @@ func (ob *OrderBook) limitHandle(incoming_order Order) OrderID {
 	if order.size > 0 {
 		ob.insertIntoBook(&order)
 	}
-
-	return order.order_id
 }
 
 func (ob *OrderBook) fillBidSide(order *Order) {
@@ -80,44 +73,11 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 	}
 }
 
-// func createExecution(order *Order, entry *Order, fill_size Size) Execution {
-//     if order.side == Bid {
-//         return Execution{
-//             order_id_bid: order.order_id,
-//             order_id_ask: entry.order_id,
-//             price:        entry.price,
-//             size:         fill_size,
-//             trader_bid:   order.trader,
-//             trader_ask:   entry.trader,
-//         }
-//     } else {
-//         return Execution{
-//             order_id_bid: entry.order_id,
-//             order_id_ask: order.order_id,
-//             price:        entry.price,
-//             size:         fill_size,
-//             trader_bid:   entry.trader,
-//             trader_ask:   order.trader,
-//         }
-//     }
-// }
-
-// TODO: Tidy up execution reporting to minimise code repetition (suggest using a 'fillsize' call to a reporting function)
-// Execution occurs at entry.price for 'price improvement'
-
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	if entry, ok := ob.order_id_map[entries.Front()]; ok {
 		if entry.size >= order.size { // Incoming order completely filled
 
-			//ex.actions <- NewExecuteAction(order, entry) ? Can call ex here?
-
-			// if order.side == Bid {
-			// 	fmt.Println(&Execution{symbol: order.symbol, order_id_bid: order.order_id, order_id_ask: entry.order_id,
-			// 		price: entry.price, size: order.size, trader_bid: order.trader, trader_ask: entry.trader})
-			// } else {
-			// 	fmt.Println(&Execution{symbol: order.symbol, order_id_bid: entry.order_id, order_id_ask: order.order_id,
-			// 		price: entry.price, size: order.size, trader_bid: entry.trader, trader_ask: order.trader})
-			// }
+			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
 
 			entry.size -= order.size
 			ob.order_id_map[entries.Front()] = entry
@@ -131,15 +91,7 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 				return
 			}
 
-			//ex.actions <- NewExecuteAction(order, entry) ? Can call ex here?
-
-			// if order.side == Bid {
-			// 	fmt.Println(&Execution{symbol: order.symbol, order_id_bid: order.order_id, order_id_ask: entry.order_id,
-			// 		price: entry.price, size: entry.size, trader_bid: order.trader, trader_ask: entry.trader})
-			// } else {
-			// 	fmt.Println(&Execution{symbol: order.symbol, order_id_bid: entry.order_id, order_id_ask: order.order_id,
-			// 		price: entry.price, size: entry.size, trader_bid: entry.trader, trader_ask: order.trader})
-			// }
+			ob.exchange.actions <- newExecuteAction(order, &entry, entry.size)
 
 			order.size -= entry.size
 			entries.PopFront()

@@ -1,5 +1,3 @@
-// go test -bench=BenchmarkExchange
-
 package main
 
 import (
@@ -7,16 +5,23 @@ import (
 	"testing"
 )
 
-// TODO: Disable Println prior in exchange.go
-
+// go test -bench=BenchmarkExchange
 func BenchmarkExchange(b *testing.B) {
 	minSize := 1
 	maxSize := 20
 	minPrice := 8000
 	maxPrice := 9500
 
+	var actions = make(chan *Action, CHAN_SIZE)
+
 	var exchange Exchange
-	exchange.Init("Test exchange")
+	exchange.Init("Test exchange", actions)
+
+	go func() {
+		for range exchange.actions {
+			// Do nothing, just discard the action (avoid overhead of STDOUT)
+		}
+	}()
 
 	for i := 0; i < b.N; i++ {
 		price := rand.Intn(maxPrice-minPrice) + minPrice

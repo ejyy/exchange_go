@@ -3,68 +3,65 @@ package main
 type ActionType string
 
 const (
-	ACTION_BID     = "BID"
-	ACTION_ASK     = "ASK"
-	ACTION_CANCEL  = "CANCEL"
-	ACTION_EXECUTE = "EXECUTION"
+	ACTION_BID           = "ORDER_BID"
+	ACTION_ASK           = "ORDER_ASK"
+	ACTION_ORDER_REJECT  = "ORDER_REJECT"
+	ACTION_CANCEL        = "CANCEL"
+	ACTION_CANCEL_REJECT = "CANCEL_REJECT"
+	ACTION_EXECUTE       = "EXECUTION"
 )
 
 type Action struct {
-	action_type    ActionType
-	symbol         string
-	order_id       OrderID
-	order_id_other OrderID
-	price          Price
-	size           Size
-	trader         TraderID
-	trader_other   TraderID
+	action_type ActionType
+	order       Order
+	other_order Order
+	fill_size   Size
 }
 
-// Consider embedding the Order struct into Action and pass pointer to order / entry object, instead of re-creating?
+// TODO: String printing function to dereference order pointers for pretty output (avoids the structs filled with 0 when unpopulated)
 
-func newBidAction(order *Order) *Action {
-	return &Action{
-		action_type: ACTION_BID,
-		symbol:      order.symbol,
-		order_id:    order.order_id,
-		price:       order.price,
-		size:        order.size,
-		trader:      order.trader,
-	}
-}
-
-func newAskAction(order *Order) *Action {
-	return &Action{
-		action_type: ACTION_ASK,
-		symbol:      order.symbol,
-		order_id:    order.order_id,
-		price:       order.price,
-		size:        order.size,
-		trader:      order.trader,
+func newOrderAction(order *Order) *Action {
+	if order.side == Bid {
+		return &Action{
+			action_type: ACTION_BID,
+			order:       *order,
+		}
+	} else {
+		return &Action{
+			action_type: ACTION_ASK,
+			order:       *order,
+		}
 	}
 }
 
 func newCancelAction(order *Order) *Action {
 	return &Action{
 		action_type: ACTION_CANCEL,
-		symbol:      order.symbol,
-		order_id:    order.order_id,
-		price:       order.price,
-		size:        order.size,
-		trader:      order.trader,
+		order:       *order,
 	}
 }
 
-func newExecuteAction(order *Order, entry *Order) *Action {
-	// If statement to report execution based on side
+func newCancelRejectAction() *Action {
 	return &Action{
-		action_type:    ACTION_EXECUTE,
-		symbol:         order.symbol,
-		order_id:       order.order_id, // Change this around?
-		order_id_other: entry.order_id, // Change this around?
-		price:          entry.price,
-		size:           order.size,   // Change this around?
-		trader:         order.trader, // Change this around?
-		trader_other:   entry.trader, // Change this around?
+		action_type: ACTION_CANCEL_REJECT,
+	}
+}
+
+// Execution occurs at entry.price for 'price improvement'
+func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
+	if order.side == Bid {
+		return &Action{
+			action_type: ACTION_EXECUTE,
+			order:       *order,
+			other_order: *entry,
+			fill_size:   fill_size,
+		}
+	} else {
+		return &Action{
+			action_type: ACTION_EXECUTE,
+			order:       *entry,
+			other_order: *order,
+			fill_size:   fill_size,
+		}
 	}
 }
