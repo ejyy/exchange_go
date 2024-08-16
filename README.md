@@ -5,7 +5,7 @@ Prototype exchange, implementing a multi-symbol limit order book matching engine
 - [x] Initial prototype of limit order book
 - [x] Multi-symbol limit order book
 - [x] Actions channel here to handle message passing for order and execution reporting
-- [ ] Order validation within Exchange Limit function
+- [x] Order validation within Exchange Limit function
 - [ ] Pre-warm the Exchange by initialising with a list of symbols
 - [x] Public vs private functions based on capitalisation
 - [ ] Partial struct storage within order_id_map (just need size and trader)
