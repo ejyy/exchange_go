@@ -30,10 +30,10 @@ func main() {
 	test_order2 := Order{symbol: "AAPL", price: 100, size: 1000, side: Ask, trader: 2}
 	exchange.Limit(test_order2)
 
-	test_order3 := Order{symbol: "GOOGL", price: 100, size: 1000, side: Bid, trader: 1}
+	test_order3 := Order{symbol: "GOOGL", price: 100, size: 1000, side: Bid, trader: 3}
 	exchange.Limit(test_order3)
 
-	test_order4 := Order{symbol: "GOOGL", price: 100, size: 1000, side: Ask, trader: 2}
+	test_order4 := Order{symbol: "GOOGL", price: 100, size: 1000, side: Ask, trader: 4}
 	exchange.Limit(test_order4)
 
 	exchange.Cancel("APPL", 1)
