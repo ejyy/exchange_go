@@ -91,13 +91,13 @@ func (action *Action) String() string {
 		)
 
 	case ACTION_ORDER_REJECT:
-		return fmt.Sprintf("ORDER REJECTED")
+		return "ORDER REJECTED"
 
 	case ACTION_CANCEL:
 		return fmt.Sprintf("CANCEL. ID: %v", action.order.order_id)
 
 	case ACTION_CANCEL_REJECT:
-		return fmt.Sprintf("CANCEL REJECTED")
+		return "CANCEL REJECTED"
 
 	case ACTION_EXECUTE:
 		return fmt.Sprintf(
