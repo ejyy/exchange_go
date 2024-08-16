@@ -1,4 +1,4 @@
-package main
+package exchange
 
 import (
 	"fmt"
@@ -41,8 +41,16 @@ func (ex *Exchange) getOrCreateOrderBook(symbol string) *OrderBook {
 	return order_book
 }
 
-func (ex *Exchange) Limit(incoming_order Order) {
-	// TODO: Add in order validation
+func (ex *Exchange) Limit(symbol string, price Price, size Size, side Side, trader TraderID) {
+	// TODO: Add in order validation before forming Order struct
+
+	incoming_order := Order{
+		symbol: symbol,
+		price: price,
+		size: size,
+		side: side,
+		trader: trader,
+	}
 
 	ob := ex.getOrCreateOrderBook(incoming_order.symbol)
 	incoming_order.order_id = ex.getNextOrderID()

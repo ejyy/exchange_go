@@ -1,4 +1,4 @@
-package main
+package exchange
 
 const (
 	MAX_PRICE   Price = 100_000

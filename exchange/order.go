@@ -1,4 +1,4 @@
-package main
+package exchange
 
 type OrderID uint64
 type Side uint8

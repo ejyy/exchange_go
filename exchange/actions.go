@@ -1,4 +1,4 @@
-package main
+package exchange
 
 import "fmt"
 
@@ -19,8 +19,6 @@ type Action struct {
 	other_order Order
 	fill_size   Size
 }
-
-// TODO: String printing function to dereference order pointers for pretty output (avoids the structs filled with 0 when unpopulated)
 
 func newOrderAction(order *Order) *Action {
 	if order.side == Bid {
