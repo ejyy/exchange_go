@@ -36,8 +36,8 @@ func main() {
 	test_order4 := Order{symbol: "GOOGL", price: 100, size: 1000, side: Ask, trader: 4}
 	exchange.Limit(test_order4)
 
-	exchange.Cancel("APPL", 1)
-	exchange.Cancel("APPL", 2)
+	exchange.Cancel(1)
+	exchange.Cancel(2)
 
 	done_channel <- true
 

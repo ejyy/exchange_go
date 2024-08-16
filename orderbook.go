@@ -5,24 +5,20 @@ import (
 )
 
 type OrderBook struct {
-	symbol           string
-	current_order_id OrderID
-	ask_min          Price
-	bid_max          Price
-	order_id_map     map[OrderID]Order // TODO: Wasteful to store entire 'Order' struct, only need trader + size (https://go.dev/play/p/4KPix5OEXJC)
-	price_points     [MAX_PRICE + 1]deque.Deque[OrderID]
-	exchange         *Exchange
+	symbol       string
+	ask_min      Price
+	bid_max      Price
+	price_points [MAX_PRICE + 1]deque.Deque[OrderID]
+	exchange     *Exchange
 }
 
 func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 	ob.symbol = symbol
-	ob.current_order_id = 0
 	ob.exchange = exchange
 
 	ob.ask_min = MAX_PRICE + 1
 	ob.bid_max = MIN_PRICE - 1
 
-	ob.order_id_map = make(map[OrderID]Order, EST_ORDERS)
 	for i := range MAX_PRICE + 1 {
 		ob.price_points[i] = *deque.New[OrderID]()
 	}
@@ -30,9 +26,6 @@ func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 
 func (ob *OrderBook) limitHandle(incoming_order Order) {
 	order := incoming_order
-
-	ob.current_order_id += 1
-	order.order_id = ob.current_order_id
 
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
@@ -74,13 +67,13 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 }
 
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
-	if entry, ok := ob.order_id_map[entries.Front()]; ok {
+	if entry, ok := ob.exchange.order_id_map[entries.Front()]; ok {
 		if entry.size >= order.size { // Incoming order completely filled
 
 			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
 
 			entry.size -= order.size
-			ob.order_id_map[entries.Front()] = entry
+			ob.exchange.order_id_map[entries.Front()] = entry
 
 			order.size = 0
 		} else { // Incoming order partially filled
@@ -95,7 +88,7 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 
 			order.size -= entry.size
 			entries.PopFront()
-			delete(ob.order_id_map, entry.order_id)
+			delete(ob.exchange.order_id_map, entry.order_id)
 		}
 	} else {
 		entries.PopFront() // If order_id not found, potentially corrupted order so remove from orderbook
@@ -103,8 +96,8 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 }
 
 func (ob *OrderBook) insertIntoBook(order *Order) {
-	ob.price_points[order.price].PushBack(ob.current_order_id)
-	ob.order_id_map[order.order_id] = *order
+	ob.price_points[order.price].PushBack(order.order_id)
+	ob.exchange.order_id_map[order.order_id] = *order
 
 	ob.updateBidMaxAskMin(order)
 }

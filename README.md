@@ -10,7 +10,7 @@ Prototype exchange, implementing a multi-symbol limit order book matching engine
 - [x] Public vs private functions based on capitalisation
 - [ ] Partial struct storage within order_id_map (just need size and trader)
 - [x] Tidy up execution reporting to minimise code repetition
-- [ ] Move current_order_id and order_id_map out of OrderBook and into Exchange to prevent having to re-make a map for each symbol
+- [x] Move current_order_id and order_id_map out of OrderBook and into Exchange to prevent having to re-make a map for each symbol
 - [ ] Thread safety with atomic / mutex
 - [ ] TCP / websockets server for order handling and communication
 - [ ] README documentation
