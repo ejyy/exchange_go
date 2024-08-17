@@ -12,6 +12,8 @@ type OrderBook struct {
 	exchange     *Exchange
 }
 
+// TODO: Realistically, need to store bids and asks as two trees
+
 func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 	ob.symbol = symbol
 	ob.exchange = exchange

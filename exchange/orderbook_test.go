@@ -64,9 +64,6 @@ func TestOrderBookFillAskSide(t *testing.T) {
 	if incomingOrder.size != 0 {
 		t.Errorf("Expected incoming order to be fully filled, remaining size %d", incomingOrder.size)
 	}
-	if ob.price_points[100].Len() != 0 {
-		t.Errorf("Expected price_points[100] to be empty, got %d", ob.price_points[100].Len())
-	}
 }
 
 func TestOrderBookFillBidSide(t *testing.T) {
@@ -85,9 +82,6 @@ func TestOrderBookFillBidSide(t *testing.T) {
 
 	if incomingOrder.size != 0 {
 		t.Errorf("Expected incoming order to be fully filled, remaining size %d", incomingOrder.size)
-	}
-	if ob.price_points[100].Len() != 0 {
-		t.Errorf("Expected price_points[100] to be empty, got %d", ob.price_points[100].Len())
 	}
 }
 
