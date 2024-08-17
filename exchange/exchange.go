@@ -12,8 +12,6 @@ type Exchange struct {
 	actions          chan *Action
 }
 
-// TODO: Can pre-warm the Exchange by initialising with a list of symbols
-
 func (ex *Exchange) Init(name string, actions chan *Action) {
 	ex.name = name
 	ex.current_order_id = 0
@@ -39,6 +37,12 @@ func (ex *Exchange) getOrCreateOrderBook(symbol string) *OrderBook {
 		ex.orderbooks_map[symbol] = order_book
 	}
 	return order_book
+}
+
+func (ex *Exchange) PreWarmWithSymbols(symbols []string) {
+	for _, symbol := range symbols {
+		ex.getOrCreateOrderBook(symbol)
+	}
 }
 
 func validateOrder(symbol string, price Price, size Size, side Side, trader TraderID) bool {

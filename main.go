@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/ejyy/exchange_go/exchange"
 )
 
@@ -13,6 +14,9 @@ func main() {
 	var done_channel = make(chan bool)
 
 	exchange_engine.Init("Example exchange", actions)
+
+	var warming_symbols = []string{"AAPL", "GOOGL"}
+	exchange_engine.PreWarmWithSymbols(warming_symbols)
 
 	go func() {
 		for {
