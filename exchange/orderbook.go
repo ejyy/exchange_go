@@ -122,32 +122,51 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 }
 
 // fillOrder fills an incoming order with the existing book orders
-// TODO: ********** RESTART DOCUMENTATION FROM HERE **********
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
+	// Look up the order in the order_id_map by the order_id
 	if entry, ok := ob.exchange.order_id_map[entries.Front()]; ok {
-		if entry.size >= order.size { // Incoming order completely filled
+		// The existing book order is larger than the incoming order
+		// Therefore, the incoming order is completely filled
+		if entry.size >= order.size {
+			// Report the trade to the exchange via the actions channel
 			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
+
+			// Reduce the existing book order size by the incoming order size and update the order_id_map
 			entry.size -= order.size
 			ob.exchange.order_id_map[entries.Front()] = entry
+
+			// Reduce the incoming order size to zero to show that no further trades are possible
 			order.size = 0
-		} else { // Incoming order partially filled
-			// Skip cancelled orders
+		} else {
+			// The existing book order is smaller than the incoming order
+			// Therefore, the incoming order is partially filled
+
+			// Skip and remove cancelled orders (which have a size of zero from the cancel function)
 			if entry.size == 0 {
 				entries.PopFront()
 				return
 			}
+
+			// Report the trade to the exchange via the actions channel
 			ob.exchange.actions <- newExecuteAction(order, &entry, entry.size)
+
+			// Reduce the incoming order size by the existing book order size
 			order.size -= entry.size
+
+			// Remove the existing book order from the orderbook and order_id_map
 			entries.PopFront()
 			delete(ob.exchange.order_id_map, entry.order_id)
 		}
 	} else {
-		entries.PopFront() // If order_id not found, potentially corrupted order so remove from orderbook
+		// The order_id is cannot be found in the order_id_map, so remove it from the orderbook
+		entries.PopFront()
 	}
 }
 
+// insertIntoBook inserts an incoming order into the appropriate btree of the orderbook
 func (ob *OrderBook) insertIntoBook(order *Order) {
-	// Highlight: Insert into the appropriate btree
+
+	// Select the appropriate btree based on the order side
 	var tree *btree.BTree
 	if order.side == Bid {
 		tree = ob.bids
@@ -155,12 +174,20 @@ func (ob *OrderBook) insertIntoBook(order *Order) {
 		tree = ob.asks
 	}
 
+	// Create a new PricePoint with the order price
 	pp := &PricePoint{price: order.price}
+
+	// Check if the price point already exists in the orderbook
 	if item := tree.Get(pp); item != nil {
 		pp = item.(*PricePoint)
 	}
+
+	// Add the order to the price point's orders deque
 	pp.orders.PushBack(order.order_id)
+
+	// Insert the price point into the orderbook
 	tree.ReplaceOrInsert(pp)
 
+	// Update the order_id_map with the order details
 	ob.exchange.order_id_map[order.order_id] = *order
 }
