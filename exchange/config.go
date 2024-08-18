@@ -1,5 +1,7 @@
 package exchange
 
+// Define the constants used in the exchange
+// These are used to provide bounds for the exchange and pre-allocate memory
 const (
 	MAX_PRICE   Price = 100_000
 	MIN_PRICE   Price = 1
