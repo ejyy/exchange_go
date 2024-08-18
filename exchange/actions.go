@@ -62,10 +62,9 @@ func newCancelRejectAction() *Action {
 	}
 }
 
-// TODO: RESTART DOCUMENTATION HERE ****************************************************
-
-// Execution occurs at entry.price for 'price improvement'
+// newExecuteAction creates a new execution action, based on the two orders being executed
 func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
+	// Execution occurs at entry.price for 'price improvement'
 	if order.side == Bid {
 		return &Action{
 			action_type: ACTION_EXECUTE,
