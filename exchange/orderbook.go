@@ -2,39 +2,46 @@ package exchange
 
 import (
 	"github.com/gammazero/deque"
+	"github.com/google/btree"
 )
 
-type OrderBook struct {
-	symbol       string
-	ask_min      Price
-	bid_max      Price
-	price_points [MAX_PRICE + 1]deque.Deque[OrderID]
-	exchange     *Exchange
+// Highlight: New struct to represent a price point in the btree
+type PricePoint struct {
+	price  Price
+	orders deque.Deque[OrderID]
 }
 
-// TODO: Realistically, need to store bids and asks as two trees
+// Highlight: Implement Less interface for btree.Item
+func (p *PricePoint) Less(than btree.Item) bool {
+	return p.price < than.(*PricePoint).price
+}
+
+type OrderBook struct {
+	symbol string
+	// Highlight: Replace price_points array with two btrees
+	asks     *btree.BTree
+	bids     *btree.BTree
+	exchange *Exchange
+}
 
 func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 	ob.symbol = symbol
 	ob.exchange = exchange
 
-	ob.ask_min = MAX_PRICE + 1
-	ob.bid_max = MIN_PRICE - 1
-
-	for i := range MAX_PRICE + 1 {
-		ob.price_points[i] = *deque.New[OrderID]()
-	}
+	// Highlight: Initialize btrees
+	ob.asks = btree.New(100_000)
+	ob.bids = btree.New(100_000)
 }
 
 func (ob *OrderBook) limitHandle(incoming_order Order) {
 	order := incoming_order
 
+	ob.exchange.actions <- newOrderAction(&order)
+
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
-		ob.exchange.actions <- newOrderAction(&order)
 		ob.fillBidSide(&order)
 	} else {
-		ob.exchange.actions <- newOrderAction(&order)
 		ob.fillAskSide(&order)
 	}
 
@@ -45,49 +52,67 @@ func (ob *OrderBook) limitHandle(incoming_order Order) {
 }
 
 func (ob *OrderBook) fillBidSide(order *Order) {
-	for order.price >= ob.ask_min && order.size > 0 {
-		entries := &ob.price_points[ob.ask_min]
-		for entries.Len() > 0 && order.size > 0 {
-			ob.fillOrder(order, entries)
-		}
-		if order.size > 0 {
-			ob.ask_min++
-		}
-	}
+    // Find the minimum ask price that matches the incoming bid
+    minAsk := ob.asks.Min()
+    if minAsk == nil || order.price < minAsk.(*PricePoint).price {
+        return // No matching asks
+    }
+
+    ob.asks.AscendGreaterOrEqual(minAsk, func(i btree.Item) bool {
+        pp := i.(*PricePoint)
+        if order.price < pp.price || order.size == 0 {
+            return false
+        }
+        for pp.orders.Len() > 0 && order.size > 0 {
+            ob.fillOrder(order, &pp.orders)
+        }
+        if pp.orders.Len() == 0 {
+            ob.asks.Delete(pp)
+        } else {
+            ob.asks.ReplaceOrInsert(pp)
+        }
+        return true
+    })
 }
 
 func (ob *OrderBook) fillAskSide(order *Order) {
-	for order.price <= ob.bid_max && order.size > 0 {
-		entries := &ob.price_points[ob.bid_max]
-		for entries.Len() > 0 && order.size > 0 {
-			ob.fillOrder(order, entries)
-		}
-		if order.size > 0 {
-			ob.bid_max--
-		}
-	}
+    // Find the maximum bid price that matches the incoming ask
+    maxBid := ob.bids.Max()
+    if maxBid == nil || order.price > maxBid.(*PricePoint).price {
+        return // No matching bids
+    }
+
+    ob.bids.DescendLessOrEqual(maxBid, func(i btree.Item) bool {
+        pp := i.(*PricePoint)
+        if order.price > pp.price || order.size == 0 {
+            return false
+        }
+        for pp.orders.Len() > 0 && order.size > 0 {
+            ob.fillOrder(order, &pp.orders)
+        }
+        if pp.orders.Len() == 0 {
+            ob.bids.Delete(pp)
+        } else {
+            ob.bids.ReplaceOrInsert(pp)
+        }
+        return true
+    })
 }
 
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	if entry, ok := ob.exchange.order_id_map[entries.Front()]; ok {
 		if entry.size >= order.size { // Incoming order completely filled
-
 			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
-
 			entry.size -= order.size
 			ob.exchange.order_id_map[entries.Front()] = entry
-
 			order.size = 0
 		} else { // Incoming order partially filled
-
 			// Skip cancelled orders
 			if entry.size == 0 {
 				entries.PopFront()
 				return
 			}
-
 			ob.exchange.actions <- newExecuteAction(order, &entry, entry.size)
-
 			order.size -= entry.size
 			entries.PopFront()
 			delete(ob.exchange.order_id_map, entry.order_id)
@@ -98,16 +123,22 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 }
 
 func (ob *OrderBook) insertIntoBook(order *Order) {
-	ob.price_points[order.price].PushBack(order.order_id)
-	ob.exchange.order_id_map[order.order_id] = *order
-
-	ob.updateBidMaxAskMin(order)
-}
-
-func (ob *OrderBook) updateBidMaxAskMin(order *Order) {
-	if order.side == Bid && order.price > ob.bid_max {
-		ob.bid_max = order.price
-	} else if order.side == Ask && order.price < ob.ask_min {
-		ob.ask_min = order.price
+	// Highlight: Insert into the appropriate btree
+	var tree *btree.BTree
+	if order.side == Bid {
+		tree = ob.bids
+	} else {
+		tree = ob.asks
 	}
+
+	pp := &PricePoint{price: order.price}
+	if item := tree.Get(pp); item != nil {
+		pp = item.(*PricePoint)
+	}
+	pp.orders.PushBack(order.order_id)
+	tree.ReplaceOrInsert(pp)
+
+	ob.exchange.order_id_map[order.order_id] = *order
 }
+
+// Highlight: Remove updateBidMaxAskMin function as it's no longer needed

@@ -57,11 +57,8 @@ func TestExchange_Limit(t *testing.T) {
 	exchange.Limit(symbol, price, size, side, trader)
 
 	orderBook := exchange.getOrCreateOrderBook(symbol)
-	if len(orderBook.price_points) == 0 {
+	if orderBook.bids.Len() == 0 {
 		t.Errorf("Expected order to be added to the order book")
-	}
-	if orderBook.bid_max != 100 {
-		t.Errorf("Expected bid_max to be 100 after adding the order")
 	}
 }
 
