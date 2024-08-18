@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"fmt"
+	"sync"
 )
 
 // Exchange represents the exchange engine, that stores the orderbooks (per symbol) and manages the orders
@@ -11,10 +12,15 @@ type Exchange struct {
 	current_order_id OrderID
 	order_id_map     map[OrderID]Order // TODO: Wasteful to store entire 'Order' struct, only need trader + size (https://go.dev/play/p/4KPix5OEXJC)
 	actions          chan *Action
+	mutex            sync.RWMutex
 }
 
 // Init initialises the exchange with the given name and actions channel, and establishes the order storage
 func (ex *Exchange) Init(name string, actions chan *Action) {
+	// Lock the exchange mutex to prevent concurrent access
+	ex.mutex.Lock()
+	defer ex.mutex.Unlock()
+
 	ex.name = name
 	ex.current_order_id = 0
 
@@ -30,12 +36,20 @@ func (ex *Exchange) Init(name string, actions chan *Action) {
 
 // getNextOrderID returns the next available order ID in the exchange and increments the counter
 func (ex *Exchange) getNextOrderID() OrderID {
+	// Lock the exchange mutex to prevent concurrent access
+	ex.mutex.Lock()
+	defer ex.mutex.Unlock()
+
 	ex.current_order_id += 1
 	return ex.current_order_id
 }
 
 // getOrCreateOrderBook returns the orderbook for the given symbol, creating it if it doesn't exist
 func (ex *Exchange) getOrCreateOrderBook(symbol string) *OrderBook {
+	// Lock the exchange mutex to prevent concurrent access
+	ex.mutex.Lock()
+	defer ex.mutex.Unlock()
+
 	order_book, exists := ex.orderbooks_map[symbol]
 	if !exists {
 		order_book = new(OrderBook)
@@ -102,6 +116,10 @@ func (ex *Exchange) Limit(symbol string, price Price, size Size, side Side, trad
 
 // Cancel processes an incoming cancel order, cancelling the order if it exists in the exchange
 func (ex *Exchange) Cancel(order_id OrderID) {
+	// Lock the exchange mutex to prevent concurrent access
+	ex.mutex.Lock()
+	defer ex.mutex.Unlock()
+
 	// Check if the order exists in the exchange
 	if cancel_order, ok := ex.order_id_map[order_id]; ok {
 		// If the order size is zero, it has already been cancelled

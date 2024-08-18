@@ -1,6 +1,8 @@
 package exchange
 
 import (
+	"sync"
+
 	"github.com/gammazero/deque"
 	"github.com/google/btree"
 )
@@ -9,6 +11,7 @@ import (
 type PricePoint struct {
 	price  Price
 	orders deque.Deque[OrderID]
+	mutex  sync.Mutex
 }
 
 // Less is used by the btree package to compare PricePoints and allow nodes to be stored correctly
@@ -22,10 +25,15 @@ type OrderBook struct {
 	asks     *btree.BTree
 	bids     *btree.BTree
 	exchange *Exchange
+	mutex    sync.RWMutex
 }
 
 // init initialises the OrderBook with the given symbol and exchange and creates the btrees
 func (ob *OrderBook) init(symbol string, exchange *Exchange) {
+	// Lock the orderbook mutex to prevent concurrent access
+	ob.mutex.Lock()
+	defer ob.mutex.Unlock()
+
 	ob.symbol = symbol
 	ob.exchange = exchange
 
@@ -37,6 +45,10 @@ func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 // 1. Immediately try to fill the incoming order
 // 2. If the order is unfilled or partially filled, insert it into the orderbook
 func (ob *OrderBook) limitHandle(incoming_order Order) {
+	// Lock the orderbook mutex to prevent concurrent access
+	ob.mutex.Lock()
+	defer ob.mutex.Unlock()
+
 	order := incoming_order
 
 	// Report the incoming order to the exchange via the actions channel
@@ -66,6 +78,10 @@ func (ob *OrderBook) fillBidSide(order *Order) {
 	// Iterate through the existing book asks from lowest to highest price
 	ob.asks.AscendGreaterOrEqual(minAsk, func(i btree.Item) bool {
 		pp := i.(*PricePoint)
+
+		// Lock the price point mutex to prevent concurrent access
+		pp.mutex.Lock()
+		defer pp.mutex.Unlock()
 
 		// If the incoming bid price is less than the current ask price, stop iterating
 		if order.price < pp.price || order.size == 0 {
@@ -100,6 +116,10 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 	ob.bids.DescendLessOrEqual(maxBid, func(i btree.Item) bool {
 		pp := i.(*PricePoint)
 
+		// Lock the price point mutex to prevent concurrent access
+		pp.mutex.Lock()
+		defer pp.mutex.Unlock()
+
 		// If the incoming ask price is greater than the current bid price, stop iterating
 		if order.price > pp.price || order.size == 0 {
 			return false
@@ -123,6 +143,10 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 
 // fillOrder fills an incoming order with the existing book orders
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
+	// Lock the exchange mutex to prevent concurrent access
+	ob.exchange.mutex.Lock()
+	defer ob.exchange.mutex.Unlock()
+
 	// Look up the order in the order_id_map by the order_id
 	if entry, ok := ob.exchange.order_id_map[entries.Front()]; ok {
 		// The existing book order is larger than the incoming order
@@ -182,12 +206,24 @@ func (ob *OrderBook) insertIntoBook(order *Order) {
 		pp = item.(*PricePoint)
 	}
 
+	// Lock the price point mutex to prevent concurrent access
+	pp.mutex.Lock()
+
 	// Add the order to the price point's orders deque
 	pp.orders.PushBack(order.order_id)
+
+	// Unlock the price point mutex again
+	pp.mutex.Unlock()
 
 	// Insert the price point into the orderbook
 	tree.ReplaceOrInsert(pp)
 
+	// Lock the exchange mutex to prevent concurrent access
+	ob.exchange.mutex.Lock()
+
 	// Update the order_id_map with the order details
 	ob.exchange.order_id_map[order.order_id] = *order
+
+	// Unlock the exchange mutex again
+	ob.exchange.mutex.Unlock()
 }
