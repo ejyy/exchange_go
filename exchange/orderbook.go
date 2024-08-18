@@ -16,7 +16,7 @@ func (p *PricePoint) Less(than btree.Item) bool {
 	return p.price < than.(*PricePoint).price
 }
 
-// OrderBook represents the orderbooks (asks and bids) for a specific symbol on the exchange
+// OrderBook represents the collection of asks and bids, for a specific symbol on the exchange
 type OrderBook struct {
 	symbol   string
 	asks     *btree.BTree
