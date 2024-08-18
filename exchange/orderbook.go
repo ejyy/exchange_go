@@ -52,51 +52,51 @@ func (ob *OrderBook) limitHandle(incoming_order Order) {
 }
 
 func (ob *OrderBook) fillBidSide(order *Order) {
-    // Find the minimum ask price that matches the incoming bid
-    minAsk := ob.asks.Min()
-    if minAsk == nil || order.price < minAsk.(*PricePoint).price {
-        return // No matching asks
-    }
+	// Find the minimum ask price that matches the incoming bid
+	minAsk := ob.asks.Min()
+	if minAsk == nil || order.price < minAsk.(*PricePoint).price {
+		return // No matching asks
+	}
 
-    ob.asks.AscendGreaterOrEqual(minAsk, func(i btree.Item) bool {
-        pp := i.(*PricePoint)
-        if order.price < pp.price || order.size == 0 {
-            return false
-        }
-        for pp.orders.Len() > 0 && order.size > 0 {
-            ob.fillOrder(order, &pp.orders)
-        }
-        if pp.orders.Len() == 0 {
-            ob.asks.Delete(pp)
-        } else {
-            ob.asks.ReplaceOrInsert(pp)
-        }
-        return true
-    })
+	ob.asks.AscendGreaterOrEqual(minAsk, func(i btree.Item) bool {
+		pp := i.(*PricePoint)
+		if order.price < pp.price || order.size == 0 {
+			return false
+		}
+		for pp.orders.Len() > 0 && order.size > 0 {
+			ob.fillOrder(order, &pp.orders)
+		}
+		if pp.orders.Len() == 0 {
+			ob.asks.Delete(pp)
+		} else {
+			ob.asks.ReplaceOrInsert(pp)
+		}
+		return true
+	})
 }
 
 func (ob *OrderBook) fillAskSide(order *Order) {
-    // Find the maximum bid price that matches the incoming ask
-    maxBid := ob.bids.Max()
-    if maxBid == nil || order.price > maxBid.(*PricePoint).price {
-        return // No matching bids
-    }
+	// Find the maximum bid price that matches the incoming ask
+	maxBid := ob.bids.Max()
+	if maxBid == nil || order.price > maxBid.(*PricePoint).price {
+		return // No matching bids
+	}
 
-    ob.bids.DescendLessOrEqual(maxBid, func(i btree.Item) bool {
-        pp := i.(*PricePoint)
-        if order.price > pp.price || order.size == 0 {
-            return false
-        }
-        for pp.orders.Len() > 0 && order.size > 0 {
-            ob.fillOrder(order, &pp.orders)
-        }
-        if pp.orders.Len() == 0 {
-            ob.bids.Delete(pp)
-        } else {
-            ob.bids.ReplaceOrInsert(pp)
-        }
-        return true
-    })
+	ob.bids.DescendLessOrEqual(maxBid, func(i btree.Item) bool {
+		pp := i.(*PricePoint)
+		if order.price > pp.price || order.size == 0 {
+			return false
+		}
+		for pp.orders.Len() > 0 && order.size > 0 {
+			ob.fillOrder(order, &pp.orders)
+		}
+		if pp.orders.Len() == 0 {
+			ob.bids.Delete(pp)
+		} else {
+			ob.bids.ReplaceOrInsert(pp)
+		}
+		return true
+	})
 }
 
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
