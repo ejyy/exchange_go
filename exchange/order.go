@@ -15,10 +15,10 @@ const (
 
 // Order represents an order on the exchange
 type Order struct {
-	order_id OrderID
-	price    Price
-	size     Size
-	side     Side
-	trader   TraderID
-	symbol   string // Symbol of the order (eg. AAPL, GOOGL)
+	orderID OrderID
+	price   Price
+	size    Size
+	side    Side
+	trader  TraderID
+	symbol  string // Symbol of the order (eg. AAPL, GOOGL)
 }

@@ -21,14 +21,14 @@ func TestOrderBookInit(t *testing.T) {
 }
 
 func TestOrderBookLimitHandle(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange_engine Exchange
 	exchange_engine.Init("TEST", actions)
 
 	ob := &OrderBook{}
 	ob.init("TEST", &exchange_engine)
 
-	order := Order{order_id: 1, price: 100, size: 10, side: Bid, trader: 1}
+	order := Order{orderID: 1, price: 100, size: 10, side: Bid, trader: 1}
 	ob.limitHandle(order)
 
 	if len(exchange_engine.actions) != 1 {
@@ -40,17 +40,17 @@ func TestOrderBookLimitHandle(t *testing.T) {
 }
 
 func TestOrderBookFillAskSide(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange_engine Exchange
 	exchange_engine.Init("TEST", actions)
 
 	ob := &OrderBook{}
 	ob.init("TEST", &exchange_engine)
 
-	order := Order{order_id: 1, price: 100, size: 10, side: Bid, trader: 1}
+	order := Order{orderID: 1, price: 100, size: 10, side: Bid, trader: 1}
 	ob.insertIntoBook(&order)
 
-	incomingOrder := Order{order_id: 2, price: 100, size: 5, side: Ask, trader: 2}
+	incomingOrder := Order{orderID: 2, price: 100, size: 5, side: Ask, trader: 2}
 	ob.fillAskSide(&incomingOrder)
 
 	if incomingOrder.size != 0 {
@@ -62,17 +62,17 @@ func TestOrderBookFillAskSide(t *testing.T) {
 }
 
 func TestOrderBookFillBidSide(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange_engine Exchange
 	exchange_engine.Init("TEST", actions)
 
 	ob := &OrderBook{}
 	ob.init("TEST", &exchange_engine)
 
-	order := Order{order_id: 1, price: 100, size: 10, side: Ask, trader: 1}
+	order := Order{orderID: 1, price: 100, size: 10, side: Ask, trader: 1}
 	ob.insertIntoBook(&order)
 
-	incomingOrder := Order{order_id: 2, price: 100, size: 5, side: Bid, trader: 2}
+	incomingOrder := Order{orderID: 2, price: 100, size: 5, side: Bid, trader: 2}
 	ob.fillBidSide(&incomingOrder)
 
 	if incomingOrder.size != 0 {
@@ -84,14 +84,14 @@ func TestOrderBookFillBidSide(t *testing.T) {
 }
 
 func TestOrderBookInsertIntoBook(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange_engine Exchange
 	exchange_engine.Init("TEST", actions)
 
 	ob := &OrderBook{}
 	ob.init("TEST", &exchange_engine)
 
-	order := Order{order_id: 1, price: 100, size: 10, side: Bid, trader: 1}
+	order := Order{orderID: 1, price: 100, size: 10, side: Bid, trader: 1}
 	ob.insertIntoBook(&order)
 
 	if ob.bids.Len() != 1 {

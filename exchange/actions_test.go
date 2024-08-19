@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewOrderAction(t *testing.T) {
-	order := &Order{order_id: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
+	order := &Order{orderID: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
 	action := newOrderAction(order)
 	if action.action_type != ActionBid {
 		t.Errorf("Expected action type to be %s, got %s", ActionBid, action.action_type)
@@ -16,7 +16,7 @@ func TestNewOrderAction(t *testing.T) {
 }
 
 func TestNewCancelAction(t *testing.T) {
-	order := &Order{order_id: 1, symbol: "AAPL", side: Bid, price: 150, size: 0, trader: 1}
+	order := &Order{orderID: 1, symbol: "AAPL", side: Bid, price: 150, size: 0, trader: 1}
 	action := newCancelAction(order)
 	if action.action_type != ActionCancel {
 		t.Errorf("Expected action type to be %s, got %s", ActionCancel, action.action_type)
@@ -37,8 +37,8 @@ func TestNewCancelRejectAction(t *testing.T) {
 }
 
 func TestNewExecuteAction(t *testing.T) {
-	order := &Order{order_id: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
-	entry := &Order{order_id: 2, symbol: "AAPL", side: Ask, price: 150, size: 10, trader: 2}
+	order := &Order{orderID: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
+	entry := &Order{orderID: 2, symbol: "AAPL", side: Ask, price: 150, size: 10, trader: 2}
 	fill_size := Size(10)
 	action := newExecuteAction(order, entry, fill_size)
 	if action.action_type != ActionExecute {
@@ -56,8 +56,8 @@ func TestNewExecuteAction(t *testing.T) {
 }
 
 func TestActionString(t *testing.T) {
-	order := &Order{order_id: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
-	entry := &Order{order_id: 2, symbol: "AAPL", side: Ask, price: 150, size: 5, trader: 2}
+	order := &Order{orderID: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
+	entry := &Order{orderID: 2, symbol: "AAPL", side: Ask, price: 150, size: 5, trader: 2}
 	fill_size := Size(5)
 
 	tests := []struct {

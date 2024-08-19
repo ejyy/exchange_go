@@ -6,7 +6,7 @@ import (
 )
 
 func TestExchange_Init(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange Exchange
 	exchange.Init("Test Exchange", actions)
 
@@ -28,7 +28,7 @@ func TestExchange_Init(t *testing.T) {
 }
 
 func TestExchange_getOrCreateOrderBook(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange Exchange
 	exchange.Init("Test Exchange", actions)
 
@@ -44,7 +44,7 @@ func TestExchange_getOrCreateOrderBook(t *testing.T) {
 }
 
 func TestExchange_Limit(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange Exchange
 	exchange.Init("Test Exchange", actions)
 
@@ -65,7 +65,7 @@ func TestExchange_Limit(t *testing.T) {
 // Expand test suite to include order validation tests
 
 func TestExchange_Cancel(t *testing.T) {
-	actions := make(chan *Action, CHAN_SIZE)
+	actions := make(chan *Action, ChanSize)
 	var exchange Exchange
 	exchange.Init("Test Exchange", actions)
 
@@ -92,7 +92,7 @@ func BenchmarkExchange(b *testing.B) {
 	minPrice := 8000
 	maxPrice := 9500
 
-	var actions = make(chan *Action, CHAN_SIZE)
+	var actions = make(chan *Action, ChanSize)
 
 	var exchange Exchange
 	exchange.Init("Test exchange", actions)

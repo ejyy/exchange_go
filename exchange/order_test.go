@@ -6,16 +6,16 @@ import (
 
 func TestOrderCreation(t *testing.T) {
 	order := Order{
-		order_id: 1,
-		price:    12345,
-		size:     100,
-		side:     Bid,
-		trader:   1,
-		symbol:   "TEST",
+		orderID: 1,
+		price:   12345,
+		size:    100,
+		side:    Bid,
+		trader:  1,
+		symbol:  "TEST",
 	}
 
-	if order.order_id != 1 {
-		t.Errorf("Expected order_id to be 1, got %d", order.order_id)
+	if order.orderID != 1 {
+		t.Errorf("Expected orderID to be 1, got %d", order.orderID)
 	}
 	if order.price != 12345 {
 		t.Errorf("Expected price to be 12345, got %d", order.price)

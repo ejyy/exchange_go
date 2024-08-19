@@ -93,7 +93,7 @@ func (action *Action) String() string {
 	case ActionBid:
 		return fmt.Sprintf(
 			"ORDER. ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v",
-			action.order.order_id,
+			action.order.orderID,
 			action.order.symbol,
 			"Bid",
 			action.order.price,
@@ -105,7 +105,7 @@ func (action *Action) String() string {
 	case ActionAsk:
 		return fmt.Sprintf(
 			"ORDER. ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v",
-			action.order.order_id,
+			action.order.orderID,
 			action.order.symbol,
 			"Ask",
 			action.order.price,
@@ -119,7 +119,7 @@ func (action *Action) String() string {
 
 	// String reporting for a cancel action
 	case ActionCancel:
-		return fmt.Sprintf("CANCEL. ID: %v", action.order.order_id)
+		return fmt.Sprintf("CANCEL. ID: %v", action.order.orderID)
 
 	// String reporting for a cancel rejection
 	case ActionCancelReject:
@@ -130,8 +130,8 @@ func (action *Action) String() string {
 		// The Bid order is always reported first in the execution action
 		return fmt.Sprintf(
 			"EXECUTION. Bid_ID: %v, Ask_ID: %v, Symbol: %v, Price: %v, Size: %v, Bid_Trader: %v, Ask_Trader: %v",
-			action.order.order_id,       // Bid order_id
-			action.cross_order.order_id, // Ask order_id
+			action.order.orderID,       // Bid orderID
+			action.cross_order.orderID, // Ask orderID
 			action.order.symbol,
 			action.fill_price, // As above, execution occurs at entry.price for 'price improvement'
 			action.fill_size,

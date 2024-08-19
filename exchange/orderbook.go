@@ -37,8 +37,8 @@ func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 	ob.symbol = symbol
 	ob.exchange = exchange
 
-	ob.asks = btree.New(int(MAX_PRICE))
-	ob.bids = btree.New(int(MAX_PRICE))
+	ob.asks = btree.New(int(MaxPrice))
+	ob.bids = btree.New(int(MaxPrice))
 }
 
 // limitHandle processes an incoming order in the following manner:
@@ -147,7 +147,7 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	ob.exchange.mutex.Lock()
 	defer ob.exchange.mutex.Unlock()
 
-	// Look up the order in the orderIDMap by the order_id
+	// Look up the order in the orderIDMap by the orderID
 	if entry, ok := ob.exchange.orderIDMap[entries.Front()]; ok {
 		// The existing book order is larger than the incoming order
 		// Therefore, the incoming order is completely filled
@@ -179,10 +179,10 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 
 			// Remove the existing book order from the orderbook and orderIDMap
 			entries.PopFront()
-			delete(ob.exchange.orderIDMap, entry.order_id)
+			delete(ob.exchange.orderIDMap, entry.orderID)
 		}
 	} else {
-		// The order_id is cannot be found in the order_id_map, so remove it from the orderbook
+		// The orderID is cannot be found in the orderIDMap, so remove it from the orderbook
 		entries.PopFront()
 	}
 }
@@ -206,24 +206,16 @@ func (ob *OrderBook) insertIntoBook(order *Order) {
 		pp = item.(*PricePoint)
 	}
 
-	// Lock the price point mutex to prevent concurrent access
+	// Add the order to the price point's orders deque (while protected by a PricePoint mutex)
 	pp.mutex.Lock()
-
-	// Add the order to the price point's orders deque
-	pp.orders.PushBack(order.order_id)
-
-	// Unlock the price point mutex again
+	pp.orders.PushBack(order.orderID)
 	pp.mutex.Unlock()
 
 	// Insert the price point into the orderbook
 	tree.ReplaceOrInsert(pp)
 
-	// Lock the exchange mutex to prevent concurrent access
+	// Update the orderIDMap with the order details (while protected by an orderIDMap mutex)
 	ob.exchange.mutex.Lock()
-
-	// Update the orderIDMap with the order details
-	ob.exchange.orderIDMap[order.order_id] = *order
-
-	// Unlock the exchange mutex again
+	ob.exchange.orderIDMap[order.orderID] = *order
 	ob.exchange.mutex.Unlock()
 }

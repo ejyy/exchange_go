@@ -12,7 +12,7 @@ func main() {
 	var exchange_engine exchange.Exchange
 
 	// Create channel to receive actions from the exchange engine (and a done channel)
-	var actions = make(chan *exchange.Action, exchange.CHAN_SIZE)
+	var actions = make(chan *exchange.Action, exchange.ChanSize)
 	var done_channel = make(chan bool)
 
 	// Initialize the exchange engine
