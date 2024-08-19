@@ -13,7 +13,7 @@ Prototype exchange, implementing a multi-symbol limit order book matching engine
 - [x] Move current_order_id and order_id_map out of OrderBook and into Exchange to prevent having to re-make a map for each symbol
 - [x] Move to tree based storage of bids and asks (can cross at pricepoint, which isn't safe for order.side)
 - [x] Thread safety with atomic / mutex
-- [ ] Tidy up code to remove snake_case and replace with CapitalCase (more idiomatic Go)
+- [x] Tidy up code to remove snake_case and replace with CapitalCase (more idiomatic Go)
 - [ ] TCP / websockets server for order handling and communication
 - [ ] README documentation
 - [x] Code documentation
