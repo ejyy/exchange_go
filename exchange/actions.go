@@ -7,12 +7,12 @@ type ActionType string
 
 // Define the action types used in the exchange for various order event states
 const (
-	ACTION_BID           = "ORDER_BID"
-	ACTION_ASK           = "ORDER_ASK"
-	ACTION_ORDER_REJECT  = "ORDER_REJECT"
-	ACTION_CANCEL        = "CANCEL"
-	ACTION_CANCEL_REJECT = "CANCEL_REJECT"
-	ACTION_EXECUTE       = "EXECUTION"
+	ActionBid          = "ORDER_BID"
+	ActionAsk          = "ORDER_ASK"
+	ActionOrderReject  = "ORDER_REJECT"
+	ActionCancel       = "CANCEL"
+	ActionCancelReject = "CANCEL_REJECT"
+	ActionExecute      = "EXECUTION"
 )
 
 // Action represents an action event passed by the exchange
@@ -28,12 +28,12 @@ type Action struct {
 func newOrderAction(order *Order) *Action {
 	if order.side == Bid {
 		return &Action{
-			action_type: ACTION_BID,
+			action_type: ActionBid,
 			order:       *order,
 		}
 	} else {
 		return &Action{
-			action_type: ACTION_ASK,
+			action_type: ActionAsk,
 			order:       *order,
 		}
 	}
@@ -43,14 +43,14 @@ func newOrderAction(order *Order) *Action {
 // This is used in cases of the incoming failing validation (eg. order.price > MAX_PRICE)
 func newOrderRejectAction() *Action {
 	return &Action{
-		action_type: ACTION_ORDER_REJECT,
+		action_type: ActionOrderReject,
 	}
 }
 
 // newCancelAction creates a new cancel action, based on the order to be cancelled
 func newCancelAction(order *Order) *Action {
 	return &Action{
-		action_type: ACTION_CANCEL,
+		action_type: ActionCancel,
 		order:       *order,
 	}
 }
@@ -59,7 +59,7 @@ func newCancelAction(order *Order) *Action {
 // This is used in cases of the cancel OrderID not being found, so the cancel is rejected
 func newCancelRejectAction() *Action {
 	return &Action{
-		action_type: ACTION_CANCEL_REJECT,
+		action_type: ActionCancelReject,
 	}
 }
 
@@ -69,7 +69,7 @@ func newCancelRejectAction() *Action {
 func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
 	if order.side == Bid {
 		return &Action{
-			action_type: ACTION_EXECUTE,
+			action_type: ActionExecute,
 			order:       *order,
 			cross_order: *entry,
 			fill_size:   fill_size,
@@ -77,7 +77,7 @@ func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
 		}
 	} else {
 		return &Action{
-			action_type: ACTION_EXECUTE,
+			action_type: ActionExecute,
 			order:       *entry,
 			cross_order: *order,
 			fill_size:   fill_size,
@@ -90,7 +90,7 @@ func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
 func (action *Action) String() string {
 	switch action.action_type {
 	// String reporting for a new Bid order
-	case ACTION_BID:
+	case ActionBid:
 		return fmt.Sprintf(
 			"ORDER. ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v",
 			action.order.order_id,
@@ -102,7 +102,7 @@ func (action *Action) String() string {
 		)
 
 	// String reporting for a new Ask order
-	case ACTION_ASK:
+	case ActionAsk:
 		return fmt.Sprintf(
 			"ORDER. ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v",
 			action.order.order_id,
@@ -114,19 +114,19 @@ func (action *Action) String() string {
 		)
 
 	// String reporting for an order rejection
-	case ACTION_ORDER_REJECT:
+	case ActionOrderReject:
 		return "ORDER REJECTED"
 
 	// String reporting for a cancel action
-	case ACTION_CANCEL:
+	case ActionCancel:
 		return fmt.Sprintf("CANCEL. ID: %v", action.order.order_id)
 
 	// String reporting for a cancel rejection
-	case ACTION_CANCEL_REJECT:
+	case ActionCancelReject:
 		return "CANCEL REJECTED"
 
 	// String reporting for an execution action
-	case ACTION_EXECUTE:
+	case ActionExecute:
 		// The Bid order is always reported first in the execution action
 		return fmt.Sprintf(
 			"EXECUTION. Bid_ID: %v, Ask_ID: %v, Symbol: %v, Price: %v, Size: %v, Bid_Trader: %v, Ask_Trader: %v",

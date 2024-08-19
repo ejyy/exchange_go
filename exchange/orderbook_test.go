@@ -97,7 +97,7 @@ func TestOrderBookInsertIntoBook(t *testing.T) {
 	if ob.bids.Len() != 1 {
 		t.Errorf("Expected 1 bid order in the order book, got %d", ob.bids.Len())
 	}
-	if ob.exchange.order_id_map[1] != order {
-		t.Errorf("Expected order_id_map to contain the order")
+	if ob.exchange.orderIDMap[1] != order {
+		t.Errorf("Expected orderIDMap to contain the order")
 	}
 }

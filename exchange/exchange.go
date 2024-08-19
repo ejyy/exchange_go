@@ -7,13 +7,17 @@ import (
 
 // Exchange represents the exchange engine, that stores the orderbooks (per symbol) and manages the orders
 type Exchange struct {
-	name             string
-	orderbooks_map   map[string]*OrderBook
-	current_order_id OrderID
-	order_id_map     map[OrderID]Order // TODO: Wasteful to store entire 'Order' struct, only need trader + size (https://go.dev/play/p/4KPix5OEXJC)
-	actions          chan *Action
-	mutex            sync.RWMutex
+	name           string
+	orderbooksMap  map[string]*OrderBook
+	currentOrderID OrderID
+	orderIDMap     map[OrderID]Order // TODO: Wasteful to store entire 'Order' struct, only need trader + size (https://go.dev/play/p/4KPix5OEXJC)
+	actions        chan *Action
+	mutex          sync.RWMutex
 }
+
+// TODO: Consider using alternative sync representations here
+// Use sync.map instead of a mutex-protected map
+// Use atomic operations for the current_order_id
 
 // Init initialises the exchange with the given name and actions channel, and establishes the order storage
 func (ex *Exchange) Init(name string, actions chan *Action) {
@@ -22,11 +26,11 @@ func (ex *Exchange) Init(name string, actions chan *Action) {
 	defer ex.mutex.Unlock()
 
 	ex.name = name
-	ex.current_order_id = 0
+	ex.currentOrderID = 0
 
 	// Pre-allocate the maps to avoid resizing based on estimated values (in config)
-	ex.orderbooks_map = make(map[string]*OrderBook, EST_SYMBOLS)
-	ex.order_id_map = make(map[OrderID]Order, EST_ORDERS)
+	ex.orderbooksMap = make(map[string]*OrderBook, EST_SYMBOLS)
+	ex.orderIDMap = make(map[OrderID]Order, EST_ORDERS)
 
 	ex.actions = actions
 
@@ -40,8 +44,8 @@ func (ex *Exchange) getNextOrderID() OrderID {
 	ex.mutex.Lock()
 	defer ex.mutex.Unlock()
 
-	ex.current_order_id += 1
-	return ex.current_order_id
+	ex.currentOrderID += 1
+	return ex.currentOrderID
 }
 
 // getOrCreateOrderBook returns the orderbook for the given symbol, creating it if it doesn't exist
@@ -50,11 +54,11 @@ func (ex *Exchange) getOrCreateOrderBook(symbol string) *OrderBook {
 	ex.mutex.Lock()
 	defer ex.mutex.Unlock()
 
-	order_book, exists := ex.orderbooks_map[symbol]
+	order_book, exists := ex.orderbooksMap[symbol]
 	if !exists {
 		order_book = new(OrderBook)
 		order_book.init(symbol, ex)
-		ex.orderbooks_map[symbol] = order_book
+		ex.orderbooksMap[symbol] = order_book
 	}
 	return order_book
 }
@@ -100,7 +104,7 @@ func (ex *Exchange) Limit(symbol string, price Price, size Size, side Side, trad
 	}
 
 	// Initialise the incoming order with the given values
-	incoming_order := Order{
+	incomingOrder := Order{
 		symbol: symbol,
 		price:  price,
 		size:   size,
@@ -109,9 +113,9 @@ func (ex *Exchange) Limit(symbol string, price Price, size Size, side Side, trad
 	}
 
 	// Get or create the orderbook for the symbol and process the incoming order
-	ob := ex.getOrCreateOrderBook(incoming_order.symbol)
-	incoming_order.order_id = ex.getNextOrderID()
-	ob.limitHandle(incoming_order)
+	ob := ex.getOrCreateOrderBook(incomingOrder.symbol)
+	incomingOrder.order_id = ex.getNextOrderID()
+	ob.limitHandle(incomingOrder)
 }
 
 // Cancel processes an incoming cancel order, cancelling the order if it exists in the exchange
@@ -121,20 +125,20 @@ func (ex *Exchange) Cancel(order_id OrderID) {
 	defer ex.mutex.Unlock()
 
 	// Check if the order exists in the exchange
-	if cancel_order, ok := ex.order_id_map[order_id]; ok {
+	if cancelOrder, ok := ex.orderIDMap[order_id]; ok {
 		// If the order size is zero, it has already been cancelled
-		if cancel_order.size == 0 {
+		if cancelOrder.size == 0 {
 			// Report the cancel rejection to the exchange via the actions channel
 			ex.actions <- newCancelRejectAction()
 		} else {
 			// Update the order size to zero to show it has been cancelled
-			cancel_order.size = 0
+			cancelOrder.size = 0
 
 			// Update the order_id_map with the cancelled order
-			ex.order_id_map[order_id] = cancel_order
+			ex.orderIDMap[order_id] = cancelOrder
 
 			// Report the cancellation to the exchange via the actions channel
-			ex.actions <- newCancelAction(&cancel_order)
+			ex.actions <- newCancelAction(&cancelOrder)
 		}
 	} else {
 		// If the order_id is not found in the order_id_map, it cannot be cancelled

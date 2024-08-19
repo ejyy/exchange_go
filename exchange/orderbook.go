@@ -147,17 +147,17 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	ob.exchange.mutex.Lock()
 	defer ob.exchange.mutex.Unlock()
 
-	// Look up the order in the order_id_map by the order_id
-	if entry, ok := ob.exchange.order_id_map[entries.Front()]; ok {
+	// Look up the order in the orderIDMap by the order_id
+	if entry, ok := ob.exchange.orderIDMap[entries.Front()]; ok {
 		// The existing book order is larger than the incoming order
 		// Therefore, the incoming order is completely filled
 		if entry.size >= order.size {
 			// Report the trade to the exchange via the actions channel
 			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
 
-			// Reduce the existing book order size by the incoming order size and update the order_id_map
+			// Reduce the existing book order size by the incoming order size and update the orderIDMap
 			entry.size -= order.size
-			ob.exchange.order_id_map[entries.Front()] = entry
+			ob.exchange.orderIDMap[entries.Front()] = entry
 
 			// Reduce the incoming order size to zero to show that no further trades are possible
 			order.size = 0
@@ -177,9 +177,9 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 			// Reduce the incoming order size by the existing book order size
 			order.size -= entry.size
 
-			// Remove the existing book order from the orderbook and order_id_map
+			// Remove the existing book order from the orderbook and orderIDMap
 			entries.PopFront()
-			delete(ob.exchange.order_id_map, entry.order_id)
+			delete(ob.exchange.orderIDMap, entry.order_id)
 		}
 	} else {
 		// The order_id is cannot be found in the order_id_map, so remove it from the orderbook
@@ -221,8 +221,8 @@ func (ob *OrderBook) insertIntoBook(order *Order) {
 	// Lock the exchange mutex to prevent concurrent access
 	ob.exchange.mutex.Lock()
 
-	// Update the order_id_map with the order details
-	ob.exchange.order_id_map[order.order_id] = *order
+	// Update the orderIDMap with the order details
+	ob.exchange.orderIDMap[order.order_id] = *order
 
 	// Unlock the exchange mutex again
 	ob.exchange.mutex.Unlock()

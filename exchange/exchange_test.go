@@ -13,14 +13,14 @@ func TestExchange_Init(t *testing.T) {
 	if exchange.name != "Test Exchange" {
 		t.Errorf("Expected exchange name to be 'Test Exchange', got %s", exchange.name)
 	}
-	if exchange.current_order_id != 0 {
-		t.Errorf("Expected current_order_id to be 0, got %d", exchange.current_order_id)
+	if exchange.currentOrderID != 0 {
+		t.Errorf("Expected currentOrderID to be 0, got %d", exchange.currentOrderID)
 	}
-	if len(exchange.orderbooks_map) != 0 {
-		t.Errorf("Expected orderbooks_map to be empty, got %d", len(exchange.orderbooks_map))
+	if len(exchange.orderbooksMap) != 0 {
+		t.Errorf("Expected orderbooksMap to be empty, got %d", len(exchange.orderbooksMap))
 	}
-	if len(exchange.order_id_map) != 0 {
-		t.Errorf("Expected order_id_map to be empty, got %d", len(exchange.order_id_map))
+	if len(exchange.orderIDMap) != 0 {
+		t.Errorf("Expected orderIDMap to be empty, got %d", len(exchange.orderIDMap))
 	}
 	if exchange.actions != actions {
 		t.Errorf("Expected actions channel to be set")
@@ -38,8 +38,8 @@ func TestExchange_getOrCreateOrderBook(t *testing.T) {
 	if orderBook == nil {
 		t.Errorf("Expected order book to be created")
 	}
-	if exchange.orderbooks_map[symbol] != orderBook {
-		t.Errorf("Expected order book to be stored in orderbooks_map")
+	if exchange.orderbooksMap[symbol] != orderBook {
+		t.Errorf("Expected order book to be stored in orderbooksMap")
 	}
 }
 
@@ -76,11 +76,11 @@ func TestExchange_Cancel(t *testing.T) {
 	trader := TraderID(1)
 
 	exchange.Limit(symbol, price, size, side, trader)
-	orderID := exchange.current_order_id
+	orderID := exchange.currentOrderID
 
 	exchange.Cancel(orderID)
 
-	if exchange.order_id_map[orderID].size != 0 {
+	if exchange.orderIDMap[orderID].size != 0 {
 		t.Errorf("Expected order size to be 0 after cancellation")
 	}
 }
