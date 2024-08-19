@@ -14,7 +14,7 @@ Prototype exchange, implementing a multi-symbol limit order book matching engine
 - [x] Move to tree based storage of bids and asks (can cross at pricepoint, which isn't safe for order.side)
 - [x] Thread safety with atomic / mutex
 - [x] Tidy up code to remove snake_case and replace with CapitalCase (more idiomatic Go)
-- [ ] Deeper tests to verify some more complex orders
+- [x] Deeper tests to verify some more complex orders
 - [ ] TCP / websockets server for order handling and communication
 - [ ] README documentation
 - [x] Code documentation
