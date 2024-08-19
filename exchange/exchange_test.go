@@ -62,7 +62,7 @@ func TestExchange_Limit(t *testing.T) {
 	}
 }
 
-func TestExchange_MultipleLimit(t *testing.T) {
+func TestExchange_FullFillLimit(t *testing.T) {
 	actions := make(chan *Action, ChanSize)
 	var exchange Exchange
 	exchange.Init("Test Exchange", actions)
@@ -86,6 +86,28 @@ func TestExchange_MultipleLimit(t *testing.T) {
 	}
 	if orderBook_googl.asks.Len() != 0 {
 		t.Errorf("Expected GOOGL asks book to be empty after full fill")
+	}
+}
+
+func TestExchange_MixedFullFillLimit(t *testing.T) {
+	actions := make(chan *Action, ChanSize)
+	var exchange Exchange
+	exchange.Init("Test Exchange", actions)
+
+	exchange.Limit("AAPL", 101, 1000, Bid, 1)
+	exchange.Limit("AAPL", 102, 500, Ask, 4)
+	exchange.Limit("AAPL", 99, 500, Ask, 2)
+	exchange.Limit("AAPL", 100, 500, Ask, 3)
+
+	orderBook_aapl := exchange.getOrCreateOrderBook("AAPL")
+	if orderBook_aapl.bids.Len() != 0 {
+		t.Errorf("Expected AAPL bids book to be empty after full fill")
+	}
+	if orderBook_aapl.asks.Len() != 1 {
+		t.Errorf("Expected AAPL asks book to have only one order after full fill")
+	}
+	if orderBook_aapl.asks.Min().(*PricePoint).price != 102 {
+		t.Errorf("Expected AAPL asks book min price to be 102 after full fill")
 	}
 }
 
