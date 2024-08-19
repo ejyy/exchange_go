@@ -8,7 +8,7 @@ func TestNewOrderAction(t *testing.T) {
 	order := &Order{orderID: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
 	action := newOrderAction(order)
 	if action.action_type != ActionBid {
-		t.Errorf("Expected action type to be %s, got %s", ActionBid, action.action_type)
+		t.Errorf("Expected action type to be %v, got %v", ActionBid, action.action_type)
 	}
 	if action.order != *order {
 		t.Errorf("Expected order to be %v, got %v", *order, action.order)
@@ -19,7 +19,7 @@ func TestNewCancelAction(t *testing.T) {
 	order := &Order{orderID: 1, symbol: "AAPL", side: Bid, price: 150, size: 0, trader: 1}
 	action := newCancelAction(order)
 	if action.action_type != ActionCancel {
-		t.Errorf("Expected action type to be %s, got %s", ActionCancel, action.action_type)
+		t.Errorf("Expected action type to be %v, got %v", ActionCancel, action.action_type)
 	}
 	if action.order != *order {
 		t.Errorf("Expected order to be %v, got %v", *order, action.order)
@@ -32,7 +32,7 @@ func TestNewCancelAction(t *testing.T) {
 func TestNewCancelRejectAction(t *testing.T) {
 	action := newCancelRejectAction()
 	if action.action_type != ActionCancelReject {
-		t.Errorf("Expected action type to be %s, got %s", ActionCancelReject, action.action_type)
+		t.Errorf("Expected action type to be %v, got %v", ActionCancelReject, action.action_type)
 	}
 }
 
@@ -42,7 +42,7 @@ func TestNewExecuteAction(t *testing.T) {
 	fill_size := Size(10)
 	action := newExecuteAction(order, entry, fill_size)
 	if action.action_type != ActionExecute {
-		t.Errorf("Expected action type to be %s, got %s", ActionExecute, action.action_type)
+		t.Errorf("Expected action type to be %v, got %v", ActionExecute, action.action_type)
 	}
 	if action.order != *order {
 		t.Errorf("Expected order to be %v, got %v", *order, action.order)

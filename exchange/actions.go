@@ -3,16 +3,16 @@ package exchange
 import "fmt"
 
 // ActionType represents the type of action event passed by the exchange
-type ActionType string
+type ActionType uint8
 
 // Define the action types used in the exchange for various order event states
 const (
-	ActionBid          = "ORDER_BID"
-	ActionAsk          = "ORDER_ASK"
-	ActionOrderReject  = "ORDER_REJECT"
-	ActionCancel       = "CANCEL"
-	ActionCancelReject = "CANCEL_REJECT"
-	ActionExecute      = "EXECUTION"
+	ActionBid ActionType = iota
+	ActionAsk
+	ActionOrderReject
+	ActionCancel
+	ActionCancelReject
+	ActionExecute
 )
 
 // Action represents an action event passed by the exchange
@@ -141,6 +141,6 @@ func (action *Action) String() string {
 
 	// Default case for unknown action types
 	default:
-		return fmt.Sprintf("Unknown Action Type: %s", action.action_type)
+		return fmt.Sprintf("Unknown Action Type: %v", action.action_type)
 	}
 }

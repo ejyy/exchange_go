@@ -62,6 +62,33 @@ func TestExchange_Limit(t *testing.T) {
 	}
 }
 
+func TestExchange_MultipleLimit(t *testing.T) {
+	actions := make(chan *Action, ChanSize)
+	var exchange Exchange
+	exchange.Init("Test Exchange", actions)
+
+	exchange.Limit("AAPL", 100, 1000, Bid, 1)
+	exchange.Limit("AAPL", 100, 1000, Ask, 2)
+	exchange.Limit("GOOGL", 200, 10, Bid, 3)
+	exchange.Limit("GOOGL", 200, 10, Ask, 4)
+
+	orderBook_aapl := exchange.getOrCreateOrderBook("AAPL")
+	if orderBook_aapl.bids.Len() != 0 {
+		t.Errorf("Expected AAPL bids book to be empty after full fill")
+	}
+	if orderBook_aapl.asks.Len() != 0 {
+		t.Errorf("Expected AAPL asks book to be empty after full fill")
+	}
+
+	orderBook_googl := exchange.getOrCreateOrderBook("GOOGL")
+	if orderBook_googl.bids.Len() != 0 {
+		t.Errorf("Expected GOOGL bids book to be empty after full fill")
+	}
+	if orderBook_googl.asks.Len() != 0 {
+		t.Errorf("Expected GOOGL asks book to be empty after full fill")
+	}
+}
+
 // Expand test suite to include order validation tests
 
 func TestExchange_Cancel(t *testing.T) {

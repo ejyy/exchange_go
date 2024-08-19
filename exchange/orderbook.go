@@ -151,7 +151,7 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 	if entry, ok := ob.exchange.orderIDMap[entries.Front()]; ok {
 		// The existing book order is larger than the incoming order
 		// Therefore, the incoming order is completely filled
-		if entry.size >= order.size {
+		if entry.size > order.size {
 			// Report the trade to the exchange via the actions channel
 			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
 
