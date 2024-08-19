@@ -47,8 +47,8 @@ func TestNewExecuteAction(t *testing.T) {
 	if action.order != *order {
 		t.Errorf("Expected order to be %v, got %v", *order, action.order)
 	}
-	if action.other_order != *entry {
-		t.Errorf("Expected other order to be %v, got %v", *entry, action.other_order)
+	if action.cross_order != *entry {
+		t.Errorf("Expected other order to be %v, got %v", *entry, action.cross_order)
 	}
 	if action.fill_size != fill_size {
 		t.Errorf("Expected fill size to be %v, got %v", fill_size, action.fill_size)
@@ -57,8 +57,8 @@ func TestNewExecuteAction(t *testing.T) {
 
 func TestActionString(t *testing.T) {
 	order := &Order{order_id: 1, symbol: "AAPL", side: Bid, price: 150, size: 10, trader: 1}
-	entry := &Order{order_id: 2, symbol: "AAPL", side: Ask, price: 150, size: 10, trader: 2}
-	fill_size := Size(10)
+	entry := &Order{order_id: 2, symbol: "AAPL", side: Ask, price: 150, size: 5, trader: 2}
+	fill_size := Size(5)
 
 	tests := []struct {
 		action *Action
@@ -67,7 +67,7 @@ func TestActionString(t *testing.T) {
 		{newOrderAction(order), "ORDER. ID: 1, Symbol: AAPL, Side: Bid, Price: 150, Size: 10, Trader: 1"},
 		{newCancelAction(order), "CANCEL. ID: 1"},
 		{newCancelRejectAction(), "CANCEL REJECTED"},
-		{newExecuteAction(order, entry, fill_size), "EXECUTION. Bid_ID: 1, Ask_ID: 2, Symbol: AAPL, Price: 150, Size: 10, Bid_Trader: 1, Ask_Trader: 2"},
+		{newExecuteAction(order, entry, fill_size), "EXECUTION. Bid_ID: 1, Ask_ID: 2, Symbol: AAPL, Price: 150, Size: 5, Bid_Trader: 1, Ask_Trader: 2"},
 	}
 
 	for _, tt := range tests {

@@ -19,8 +19,9 @@ const (
 type Action struct {
 	action_type ActionType
 	order       Order // Used to represent an action performed on the incoming order
-	other_order Order // Used to represent an action performed on the existing book order
+	cross_order Order // Used to represent an action performed on the existing book order
 	fill_size   Size  // Number of shares filled in the execution
+	fill_price  Price // Price at which the execution occurrs
 }
 
 // newOrderAction creates a new order action based on the order side (Bid or Ask)
@@ -63,26 +64,27 @@ func newCancelRejectAction() *Action {
 }
 
 // newExecuteAction creates a new execution action, based on the two orders being executed
+// The fill_size is the number of shares filled in the execution
+// Execution occurs at entry.price for 'price improvement'
 func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
-	// Execution occurs at entry.price for 'price improvement'
 	if order.side == Bid {
 		return &Action{
 			action_type: ACTION_EXECUTE,
 			order:       *order,
-			other_order: *entry,
+			cross_order: *entry,
 			fill_size:   fill_size,
+			fill_price:  entry.price,
 		}
 	} else {
 		return &Action{
 			action_type: ACTION_EXECUTE,
 			order:       *entry,
-			other_order: *order,
+			cross_order: *order,
 			fill_size:   fill_size,
+			fill_price:  entry.price,
 		}
 	}
 }
-
-// TODO: Unclear if this is actually correctly reporting the side consistently? Check again!!
 
 // String returns a string representation of the action, used for logging
 func (action *Action) String() string {
@@ -119,15 +121,16 @@ func (action *Action) String() string {
 		return "CANCEL REJECTED"
 
 	case ACTION_EXECUTE:
+		// The Bid order is always reported first in the execution action
 		return fmt.Sprintf(
 			"EXECUTION. Bid_ID: %v, Ask_ID: %v, Symbol: %v, Price: %v, Size: %v, Bid_Trader: %v, Ask_Trader: %v",
-			action.order.order_id,
-			action.other_order.order_id,
+			action.order.order_id,       // Bid order_id
+			action.cross_order.order_id, // Ask order_id
 			action.order.symbol,
-			action.order.price, // TODO: This is not consistently entry.price
+			action.fill_price, // Execution price (at entry.price)
 			action.fill_size,
-			action.order.trader,
-			action.other_order.trader,
+			action.order.trader,       // Bid trader
+			action.cross_order.trader, // Ask trader
 		)
 
 	default:
