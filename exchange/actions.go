@@ -89,6 +89,7 @@ func newExecuteAction(order *Order, entry *Order, fill_size Size) *Action {
 // String returns a string representation of the action, used for logging
 func (action *Action) String() string {
 	switch action.action_type {
+	// String reporting for a new Bid order
 	case ACTION_BID:
 		return fmt.Sprintf(
 			"ORDER. ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v",
@@ -100,6 +101,7 @@ func (action *Action) String() string {
 			action.order.trader,
 		)
 
+	// String reporting for a new Ask order
 	case ACTION_ASK:
 		return fmt.Sprintf(
 			"ORDER. ID: %v, Symbol: %v, Side: %v, Price: %v, Size: %v, Trader: %v",
@@ -111,15 +113,19 @@ func (action *Action) String() string {
 			action.order.trader,
 		)
 
+	// String reporting for an order rejection
 	case ACTION_ORDER_REJECT:
 		return "ORDER REJECTED"
 
+	// String reporting for a cancel action
 	case ACTION_CANCEL:
 		return fmt.Sprintf("CANCEL. ID: %v", action.order.order_id)
 
+	// String reporting for a cancel rejection
 	case ACTION_CANCEL_REJECT:
 		return "CANCEL REJECTED"
 
+	// String reporting for an execution action
 	case ACTION_EXECUTE:
 		// The Bid order is always reported first in the execution action
 		return fmt.Sprintf(
@@ -127,12 +133,13 @@ func (action *Action) String() string {
 			action.order.order_id,       // Bid order_id
 			action.cross_order.order_id, // Ask order_id
 			action.order.symbol,
-			action.fill_price, // Execution price (at entry.price)
+			action.fill_price, // As above, execution occurs at entry.price for 'price improvement'
 			action.fill_size,
 			action.order.trader,       // Bid trader
 			action.cross_order.trader, // Ask trader
 		)
 
+	// Default case for unknown action types
 	default:
 		return fmt.Sprintf("Unknown Action Type: %s", action.action_type)
 	}
