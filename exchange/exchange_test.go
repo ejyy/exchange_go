@@ -166,6 +166,10 @@ func BenchmarkExchange(b *testing.B) {
 			side = Ask
 		}
 
-		exchange.Limit(symbol, Price(price), Size(size), side, 1)
+		if rand.Intn(1000) >= 500 {
+			exchange.Limit(symbol, Price(price), Size(size), side, 1)
+		} else {
+			exchange.Cancel(OrderID(price))
+		}
 	}
 }
