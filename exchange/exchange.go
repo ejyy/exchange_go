@@ -10,14 +10,10 @@ type Exchange struct {
 	name           string
 	orderbooksMap  map[string]*OrderBook
 	currentOrderID OrderID
-	orderIDMap     map[OrderID]Order // TODO: Wasteful to store entire 'Order' struct, only need trader + size (https://go.dev/play/p/4KPix5OEXJC)
+	orderIDMap     map[OrderID]Order // Could consider struct composing; only need trader + size
 	actions        chan *Action
 	mutex          sync.RWMutex
 }
-
-// TODO: Consider using alternative sync representations here
-// Use sync.map instead of a mutex-protected map
-// Use atomic operations for the currentOrderID
 
 // Init initialises the exchange with the given name and actions channel, and establishes the order storage
 func (ex *Exchange) Init(name string, actions chan *Action) {
