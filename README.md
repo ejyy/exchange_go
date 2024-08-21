@@ -12,7 +12,7 @@
 > Use in a production environment is strongly discouraged, without much more thorough testing and performance tuning.
 
 ## Example usage:
-```
+```go
 package main
 
 import (
@@ -66,7 +66,7 @@ func main() {
 }
 ```
 
-### Contributions:
+## Contributions:
 Contributions are welcome; please feel free to submit a Pull Request 👍.
 
 ## Licence:
