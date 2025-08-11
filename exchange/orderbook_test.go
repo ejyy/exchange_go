@@ -31,8 +31,8 @@ func TestOrderBookLimitHandle(t *testing.T) {
 	order := Order{orderID: 1, price: 100, size: 10, side: Bid, trader: 1}
 	ob.limitHandle(order)
 
-	if len(exchange_engine.actions) != 1 {
-		t.Errorf("Expected 1 action, got %d", len(exchange_engine.actions))
+	if len(exchange_engine.Actions) != 1 {
+		t.Errorf("Expected 1 action, got %d", len(exchange_engine.Actions))
 	}
 	if ob.bids.Len() != 1 {
 		t.Errorf("Expected 1 bid order in the order book, got %d", ob.bids.Len())

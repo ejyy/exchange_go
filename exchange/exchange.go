@@ -11,7 +11,7 @@ type Exchange struct {
 	orderbooksMap  map[string]*OrderBook
 	currentOrderID OrderID
 	orderIDMap     map[OrderID]Order // Could consider struct composing; only need trader + size
-	actions        chan *Action
+	Actions        chan *Action
 	mutex          sync.RWMutex
 }
 
@@ -28,7 +28,7 @@ func (ex *Exchange) Init(name string, actions chan *Action) {
 	ex.orderbooksMap = make(map[string]*OrderBook, EstNumSymbols)
 	ex.orderIDMap = make(map[OrderID]Order, EstNumOrders)
 
-	ex.actions = actions
+	ex.Actions = actions
 
 	// Report the exchange is ready to accept orders via STDOUT
 	fmt.Println("Exchange started:", ex.name, "- Ready to accept orders")
@@ -95,7 +95,7 @@ func (ex *Exchange) Limit(symbol string, price Price, size Size, side Side, trad
 	// Validate the incoming order, rejecting if invalid
 	if !validateOrder(symbol, price, size, side, trader) {
 		// Report the rejection to the exchange via the actions channel
-		ex.actions <- newOrderRejectAction()
+		ex.Actions <- newOrderRejectAction()
 		return
 	}
 
@@ -125,7 +125,7 @@ func (ex *Exchange) Cancel(orderID OrderID) {
 		// If the order size is zero, it has already been cancelled
 		if cancelOrder.size == 0 {
 			// Report the cancel rejection to the exchange via the actions channel
-			ex.actions <- newCancelRejectAction()
+			ex.Actions <- newCancelRejectAction()
 		} else {
 			// Update the order size to zero to show it has been cancelled
 			cancelOrder.size = 0
@@ -134,11 +134,11 @@ func (ex *Exchange) Cancel(orderID OrderID) {
 			ex.orderIDMap[orderID] = cancelOrder
 
 			// Report the cancellation to the exchange via the actions channel
-			ex.actions <- newCancelAction(&cancelOrder)
+			ex.Actions <- newCancelAction(&cancelOrder)
 		}
 	} else {
 		// If the orderID is not found in the orderIDMap, it cannot be cancelled
 		// Report the cancel rejection to the exchange via the actions channel
-		ex.actions <- newCancelRejectAction()
+		ex.Actions <- newCancelRejectAction()
 	}
 }

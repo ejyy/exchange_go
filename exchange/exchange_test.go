@@ -22,7 +22,7 @@ func TestExchange_Init(t *testing.T) {
 	if len(exchange.orderIDMap) != 0 {
 		t.Errorf("Expected orderIDMap to be empty, got %d", len(exchange.orderIDMap))
 	}
-	if exchange.actions != actions {
+	if exchange.Actions != actions {
 		t.Errorf("Expected actions channel to be set")
 	}
 }

@@ -52,7 +52,7 @@ func (ob *OrderBook) limitHandle(incoming_order Order) {
 	order := incoming_order
 
 	// Report the incoming order to the exchange via the actions channel
-	ob.exchange.actions <- newOrderAction(&order)
+	ob.exchange.Actions <- newOrderAction(&order)
 
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
@@ -153,7 +153,7 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 		// Therefore, the incoming order is completely filled
 		if entry.size > order.size {
 			// Report the trade to the exchange via the actions channel
-			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
+			ob.exchange.Actions <- newExecuteAction(order, &entry, order.size)
 
 			// Reduce the existing book order size by the incoming order size and update the orderIDMap
 			entry.size -= order.size
@@ -172,7 +172,7 @@ func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
 			}
 
 			// Report the trade to the exchange via the actions channel
-			ob.exchange.actions <- newExecuteAction(order, &entry, entry.size)
+			ob.exchange.Actions <- newExecuteAction(order, &entry, entry.size)
 
 			// Reduce the incoming order size by the existing book order size
 			order.size -= entry.size
