@@ -8,4 +8,5 @@ const (
 	EstNumOrders  Size  = 1_000_000 // Rough estimate of number of orders (to pre-allocate orderIDMap)
 	EstNumSymbols Size  = 1_000     // Rough estimate of number of symbols (to pre-allocate orderbooksMap)
 	ChanSize      Size  = 10_000    // Channel buffer size
+	TCPPort       int   = 8080      // TCP binding port
 )
