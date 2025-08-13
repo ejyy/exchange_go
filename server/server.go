@@ -19,6 +19,8 @@ type Server struct {
 	mutex    sync.RWMutex
 }
 
+// TODO: Make the Init like Exchange and println internally rather than in main.go
+
 // NewServer creates a new TCP server instance
 func NewServer(ex *exchange.Exchange, actions chan *exchange.Action) *Server {
 	return &Server{
