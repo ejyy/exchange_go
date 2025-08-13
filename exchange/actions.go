@@ -15,6 +15,8 @@ const (
 	ActionExecute
 )
 
+// TODO: Make actions public or private (to prevent false reporting)
+
 // Action represents an action event passed by the exchange
 type Action struct {
 	action_type ActionType

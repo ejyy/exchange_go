@@ -11,7 +11,7 @@ type Exchange struct {
 	orderbooksMap  map[string]*OrderBook
 	currentOrderID OrderID
 	orderIDMap     map[OrderID]Order // Could consider struct composing; only need trader + size
-	Actions        chan *Action
+	actions        chan *Action
 	mutex          sync.RWMutex
 }
 

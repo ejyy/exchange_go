@@ -19,14 +19,14 @@ type Server struct {
 	mutex    sync.RWMutex
 }
 
-// TODO: Make the Init like Exchange and println internally rather than in main.go
+// Init creates a new TCP server instance
+func (srv *Server) Init(ex *exchange.Exchange, actions chan *exchange.Action) {
+	srv.exchange = ex
+	srv.actions = actions
+	srv.clients = make(map[net.Conn]bool)
 
-// NewServer creates a new TCP server instance
-func NewServer(ex *exchange.Exchange, actions chan *exchange.Action) *Server {
-	return &Server{
-		exchange: ex,
-		actions:  actions,
-		clients:  make(map[net.Conn]bool),
+	if err := srv.Start(exchange.TCPPort); err != nil {
+		fmt.Println("Server failed: ", err)
 	}
 }
 
