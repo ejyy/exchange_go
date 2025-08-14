@@ -3,13 +3,14 @@ package exchange
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
 // Exchange represents the exchange engine, that stores the orderbooks (per symbol) and manages the orders
 type Exchange struct {
 	name           string
 	orderbooksMap  map[string]*OrderBook
-	currentOrderID OrderID
+	currentOrderID uint64
 	orderIDMap     map[OrderID]Order // Could consider struct composing; only need trader + size
 	actions        chan *Action
 	mutex          sync.RWMutex
@@ -36,12 +37,7 @@ func (ex *Exchange) Init(name string, actions chan *Action) {
 
 // getNextOrderID returns the next available order ID in the exchange and increments the counter
 func (ex *Exchange) getNextOrderID() OrderID {
-	// Lock the exchange mutex to prevent concurrent access
-	ex.mutex.Lock()
-	defer ex.mutex.Unlock()
-
-	ex.currentOrderID += 1
-	return ex.currentOrderID
+	return OrderID(atomic.AddUint64(&ex.currentOrderID, 1))
 }
 
 // getOrCreateOrderBook returns the orderbook for the given symbol, creating it if it doesn't exist

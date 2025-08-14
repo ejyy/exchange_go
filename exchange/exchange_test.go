@@ -125,7 +125,7 @@ func TestExchange_Cancel(t *testing.T) {
 	trader := TraderID(1)
 
 	exchange.Limit(symbol, price, size, side, trader)
-	orderID := exchange.currentOrderID
+	orderID := OrderID(exchange.currentOrderID)
 
 	exchange.Cancel(orderID)
 
