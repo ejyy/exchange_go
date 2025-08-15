@@ -11,7 +11,6 @@ import (
 type PricePoint struct {
 	price  Price
 	orders deque.Deque[OrderID]
-	mutex  sync.Mutex
 }
 
 // Less is used by the btree package to compare PricePoints and allow nodes to be stored correctly
@@ -79,10 +78,6 @@ func (ob *OrderBook) fillBidSide(order *Order) {
 	ob.asks.AscendGreaterOrEqual(minAsk, func(i btree.Item) bool {
 		pp := i.(*PricePoint)
 
-		// Lock the price point mutex to prevent concurrent access
-		pp.mutex.Lock()
-		defer pp.mutex.Unlock()
-
 		// If the incoming bid price is less than the current ask price, stop iterating
 		if order.price < pp.price || order.size == 0 {
 			return false
@@ -115,10 +110,6 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 	// Iterate through the existing book bids from highest to lowest price
 	ob.bids.DescendLessOrEqual(maxBid, func(i btree.Item) bool {
 		pp := i.(*PricePoint)
-
-		// Lock the price point mutex to prevent concurrent access
-		pp.mutex.Lock()
-		defer pp.mutex.Unlock()
 
 		// If the incoming ask price is greater than the current bid price, stop iterating
 		if order.price > pp.price || order.size == 0 {
@@ -206,10 +197,8 @@ func (ob *OrderBook) insertIntoBook(order *Order) {
 		pp = item.(*PricePoint)
 	}
 
-	// Add the order to the price point's orders deque (while protected by a PricePoint mutex)
-	pp.mutex.Lock()
+	// Add the order to the price point's orders deque
 	pp.orders.PushBack(order.orderID)
-	pp.mutex.Unlock()
 
 	// Insert the price point into the orderbook
 	tree.ReplaceOrInsert(pp)
