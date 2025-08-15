@@ -37,8 +37,8 @@ func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 	ob.symbol = symbol
 	ob.exchange = exchange
 
-	ob.asks = btree.New(int(MaxPrice))
-	ob.bids = btree.New(int(MaxPrice))
+	ob.asks = btree.New(32)
+	ob.bids = btree.New(32)
 }
 
 // limitHandle processes an incoming order in the following manner:
