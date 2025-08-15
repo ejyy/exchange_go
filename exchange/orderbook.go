@@ -134,47 +134,53 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 
 // fillOrder fills an incoming order with the existing book orders
 func (ob *OrderBook) fillOrder(order *Order, entries *deque.Deque[OrderID]) {
-	// Lock the exchange mutex to prevent concurrent access
-	ob.exchange.mutex.Lock()
-	defer ob.exchange.mutex.Unlock()
-
 	// Look up the order in the orderIDMap by the orderID
-	if entry, ok := ob.exchange.orderIDMap[entries.Front()]; ok {
-		// The existing book order is larger than the incoming order
-		// Therefore, the incoming order is completely filled
-		if entry.size > order.size {
-			// Report the trade to the exchange via the actions channel
-			ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
+	ob.exchange.mutex.RLock()
+	entry, ok := ob.exchange.orderIDMap[entries.Front()]
+	ob.exchange.mutex.RUnlock()
 
-			// Reduce the existing book order size by the incoming order size and update the orderIDMap
-			entry.size -= order.size
-			ob.exchange.orderIDMap[entries.Front()] = entry
-
-			// Reduce the incoming order size to zero to show that no further trades are possible
-			order.size = 0
-		} else {
-			// The existing book order is smaller than the incoming order
-			// Therefore, the incoming order is partially filled
-
-			// Skip and remove cancelled orders (which have a size of zero from the cancel function)
-			if entry.size == 0 {
-				entries.PopFront()
-				return
-			}
-
-			// Report the trade to the exchange via the actions channel
-			ob.exchange.actions <- newExecuteAction(order, &entry, entry.size)
-
-			// Reduce the incoming order size by the existing book order size
-			order.size -= entry.size
-
-			// Remove the existing book order from the orderbook and orderIDMap
-			entries.PopFront()
-			delete(ob.exchange.orderIDMap, entry.orderID)
-		}
-	} else {
-		// The orderID is cannot be found in the orderIDMap, so remove it from the orderbook
+	if !ok {
 		entries.PopFront()
+		return
+	}
+
+	// Skip and remove cancelled orders (which have a size of zero from the cancel function)
+	if entry.size == 0 {
+		entries.PopFront()
+		return
+	}
+
+	// The existing book order is larger than the incoming order
+	// Therefore, the incoming order is completely filled
+	if entry.size > order.size {
+		// Report the trade to the exchange via the actions channel
+		ob.exchange.actions <- newExecuteAction(order, &entry, order.size)
+
+		// Reduce the existing book order size by the incoming order size and update the orderIDMap
+		entry.size -= order.size
+
+		ob.exchange.mutex.Lock()
+		ob.exchange.orderIDMap[entries.Front()] = entry
+		ob.exchange.mutex.Unlock()
+
+		// Reduce the incoming order size to zero to show that no further trades are possible
+		order.size = 0
+	} else {
+		// The existing book order is smaller than the incoming order
+		// Therefore, the incoming order is partially filled
+
+		// Report the trade to the exchange via the actions channel
+		ob.exchange.actions <- newExecuteAction(order, &entry, entry.size)
+
+		// Reduce the incoming order size by the existing book order size
+		order.size -= entry.size
+
+		// Remove the existing book order from the orderbook and orderIDMap
+		entries.PopFront()
+
+		ob.exchange.mutex.Lock()
+		delete(ob.exchange.orderIDMap, entry.orderID)
+		ob.exchange.mutex.Unlock()
 	}
 }
 
