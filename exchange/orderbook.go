@@ -43,26 +43,24 @@ func (ob *OrderBook) init(symbol string, exchange *Exchange) {
 // limitHandle processes an incoming order in the following manner:
 // 1. Immediately try to fill the incoming order
 // 2. If the order is unfilled or partially filled, insert it into the orderbook
-func (ob *OrderBook) limitHandle(incoming_order Order) {
+func (ob *OrderBook) limitHandle(order *Order) {
 	// Lock the orderbook mutex to prevent concurrent access
 	ob.mutex.Lock()
 	defer ob.mutex.Unlock()
 
-	order := incoming_order
-
 	// Report the incoming order to the exchange via the actions channel
-	ob.exchange.actions <- newOrderAction(&order)
+	ob.exchange.actions <- newOrderAction(order)
 
 	// Try to immediately fill the incoming order
 	if order.side == Bid {
-		ob.fillBidSide(&order)
+		ob.fillBidSide(order)
 	} else {
-		ob.fillAskSide(&order)
+		ob.fillAskSide(order)
 	}
 
 	// If unfilled (or partially filled), insert into the orderbook
 	if order.size > 0 {
-		ob.insertIntoBook(&order)
+		ob.insertIntoBook(order)
 	}
 }
 
@@ -91,10 +89,8 @@ func (ob *OrderBook) fillBidSide(order *Order) {
 		// If the price point is empty, remove it from the orderbook
 		if pp.orders.Len() == 0 {
 			ob.asks.Delete(pp)
-		} else {
-			// Otherwise, replace the price point in the orderbook
-			ob.asks.ReplaceOrInsert(pp)
 		}
+
 		return true
 	})
 }
@@ -124,10 +120,8 @@ func (ob *OrderBook) fillAskSide(order *Order) {
 		// If the price point is empty, remove it from the orderbook
 		if pp.orders.Len() == 0 {
 			ob.bids.Delete(pp)
-		} else {
-			// Otherwise, replace the price point in the orderbook
-			ob.bids.ReplaceOrInsert(pp)
 		}
+
 		return true
 	})
 }
