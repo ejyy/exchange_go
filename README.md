@@ -1,5 +1,5 @@
 # exchange_go
-⚡ Exchange_go is a prototype trading exchange, implementing a multi-symbol limit order book matching engine, written in Go. It aims to be high performance, low latency and thread safe. Exchange_go is the order matching engine component of an exchange, taking orders via a function call; it does not currently present a server for client connections.
+⚡ Exchange_go is a prototype trading exchange, implementing a multi-symbol limit order book matching engine, written in Go. It aims to be high performance, low latency and thread safe. Exchange_go is the order matching engine component of an exchange, taking orders via a function call. It also presents a basic server for client connections.
 
 ## Features:
 - Multi-symbol limit order book matching engine
